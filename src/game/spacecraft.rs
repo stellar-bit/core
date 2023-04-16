@@ -1,7 +1,6 @@
 mod component;
 
 use crate::prelude::*;
-use crate::CONSTRUCTION_SIZE;
 pub use component::*;
 use std::collections::BTreeMap;
 use std::collections::HashSet;

@@ -21,9 +21,7 @@ pub use spacecraft::{
 pub use star_base::{StarBase, StarBaseEffect};
 pub use {projectile::Projectile, projectile::ProjectileType};
 
-use std::ops::AddAssign;
-use std::thread;
-use std::{ops::SubAssign, time::Duration};
+use std::{time::Duration};
 
 use strum::IntoStaticStr;
 

@@ -26,7 +26,7 @@ pub trait ComponentWrapper {
     fn update(&mut self, dt: f32) -> Vec<ComponentEffect>;
     fn mass(&self) -> f32;
     fn health(&self) -> f32;
-    fn handle_cmd(&mut self, cmd: ComponentCmd) {}
+    fn handle_cmd(&mut self, _: ComponentCmd) {}
     fn apply_damage(&mut self, damage: f32);
 }
 

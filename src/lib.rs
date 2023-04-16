@@ -142,9 +142,6 @@ mod tests {
 
         assert_eq!(normalize_radians(rotation), target_rotation);
 
-        let rotation = -0.2;
-        let target_rotation = -0.2;
-
         // low precision
         // assert_eq!(normalize_radians(rotation), target_rotation);
 
