@@ -2,5 +2,5 @@
 
 Multiplayer space colonization simulator.
 
-## License
+## License CC-BY-NC-SA-4.0
 Non-commercial use only
