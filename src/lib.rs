@@ -4,8 +4,6 @@
 pub mod game;
 pub mod network;
 
-pub const TESTING_AUTH_TOKEN: &str = "owaiefjwoiefjapweofijawpfeo";
-pub const SERVER_ADDRESS: &str = "ws://0.0.0.0:39453";
 pub const GAME_BUFFER_SIZE: usize = 2 << 15;
 pub const CONSTRUCTION_SIZE: usize = 30;
 
