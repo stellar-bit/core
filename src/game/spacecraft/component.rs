@@ -46,12 +46,21 @@ impl Component {
             Component::Weapon(weapon) => &weapon.body,
         }
     }
-    pub fn update(&mut self, dt: f32) -> Vec<ComponentEffect> {
+    pub fn body_mut(&mut self) -> &mut ComponentBody {
         match self {
-            Component::Block(block) => block.update(dt),
-            Component::Engine(engine) => engine.update(dt),
-            Component::Weapon(weapon) => weapon.update(dt),
+            Component::Block(block) => &mut block.body,
+            Component::Engine(engine) => &mut engine.body,
+            Component::Weapon(weapon) => &mut weapon.body,
         }
+    }
+    pub fn update(&mut self, time: f32) -> Vec<ComponentEffect> {
+        let result = match self {
+            Component::Block(block) => block.update(time),
+            Component::Engine(engine) => engine.update(time),
+            Component::Weapon(weapon) => weapon.update(time),
+        };
+        self.body_mut().update(time);
+        result
     }
     pub fn mass(&self) -> f32 {
         match self {
@@ -90,9 +99,15 @@ pub struct ComponentBody {
     pub position: IVec2,
     pub orientation: Orientation,
     pub origin: ComponentType,
+    pub cur_time: f32,
 }
 
 impl ComponentBody {
+    pub fn update(&mut self, time: f32) {
+        assert!(self.cur_time<=time);
+
+        self.cur_time = time;
+    }
     pub fn scale(&self) -> UVec2 {
         self.origin.scale()
     }
@@ -151,11 +166,12 @@ pub enum ComponentType {
 }
 
 impl ComponentType {
-    pub fn build(&self, position: IVec2, orientation: Orientation) -> Component {
+    pub fn build(&self, position: IVec2, orientation: Orientation,) -> Component {
         let body = ComponentBody {
             position,
             orientation,
             origin: *self,
+            cur_time: 0.
         };
         let health = self.health();
         match self {

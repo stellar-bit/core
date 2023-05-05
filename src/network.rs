@@ -22,7 +22,6 @@ pub enum ClientRequest {
     SyncClock,
 }
 
-
 #[derive(Debug)]
 pub enum NetworkError {
     IncorrectDataFormat,

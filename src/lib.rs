@@ -45,8 +45,8 @@ pub mod prelude {
     pub use game::{
         collision_detection::convex_hull, Asteroid, Component, ComponentCmd, ComponentId,
         ComponentPlaceholder, ComponentType, ComponentWrapper, Game, GameCmd, GameEvent,
-        GameObject, GameObjectId, Material, Orientation, Player, PlayerToken, Projectile,
-        ProjectileType, Spacecraft, SpacecraftStructure, StarBase, Transform, User,
+        GameObject, GameObjectBody, GameObjectId, Material, Orientation, Player, PlayerToken,
+        Projectile, ProjectileType, Spacecraft, SpacecraftStructure, StarBase, User, GameObjectEffect
     };
     pub use glam::{ivec2, uvec2, vec2, IVec2, UVec2, Vec2};
 
@@ -157,7 +157,7 @@ mod tests {
 
 use std::time;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct Interval {
@@ -173,8 +173,8 @@ impl Interval {
         }
     }
     pub fn check(&mut self) -> bool {
-        let now  = prelude::now();
-        if now-self.last > self.interval {
+        let now = prelude::now();
+        if now - self.last > self.interval {
             self.last = now;
             true
         } else {

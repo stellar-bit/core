@@ -10,20 +10,20 @@ pub enum GameObject {
 }
 
 impl GameObject {
-    pub fn transform_mut(&mut self) -> &mut Transform {
+    pub fn body_mut(&mut self) -> &mut GameObjectBody {
         match self {
-            GameObject::Asteroid(asteroid) => &mut asteroid.transform,
-            GameObject::StarBase(star_base) => &mut star_base.transform,
-            GameObject::Spacecraft(spacecraft) => &mut spacecraft.transform,
-            GameObject::Projectile(projectile) => &mut projectile.transform,
+            GameObject::Asteroid(asteroid) => &mut asteroid.body,
+            GameObject::StarBase(star_base) => &mut star_base.body,
+            GameObject::Spacecraft(spacecraft) => &mut spacecraft.body,
+            GameObject::Projectile(projectile) => &mut projectile.body,
         }
     }
-    pub fn transform(&self) -> &Transform {
+    pub fn body(&self) -> &GameObjectBody {
         match self {
-            GameObject::Asteroid(asteroid) => &asteroid.transform,
-            GameObject::StarBase(star_base) => &star_base.transform,
-            GameObject::Spacecraft(spacecraft) => &spacecraft.transform,
-            GameObject::Projectile(projectile) => &projectile.transform,
+            GameObject::Asteroid(asteroid) => &asteroid.body,
+            GameObject::StarBase(star_base) => &star_base.body,
+            GameObject::Spacecraft(spacecraft) => &spacecraft.body,
+            GameObject::Projectile(projectile) => &projectile.body,
         }
     }
     pub fn mass(&self) -> f32 {
@@ -89,18 +89,87 @@ impl GameObject {
         }
     }
     pub fn collides(&self, other: &GameObject) -> bool {
-        let pos_offset = self.transform().position - other.transform().position;
+        let pos_offset = self.body().position - other.body().position;
 
         let other_bounds = other
             .bounds()
             .iter()
             .map(|&ver| {
-                let rotation = other.transform().rotation - self.transform().rotation;
+                let rotation = other.body().rotation - self.body().rotation;
                 ver.rotate_rad(rotation) + pos_offset
             })
             .collect();
 
         collision_detection::sat_collision_detect(&self.bounds(), &other_bounds)
+    }
+    pub fn update(&mut self, time: f32) -> Vec<GameObjectEffect> {
+        let result = match self {
+            GameObject::Asteroid(asteroid) => vec![],
+            GameObject::StarBase(star_base) => vec![],
+            GameObject::Spacecraft(spacecraft) => spacecraft.update(time),
+            GameObject::Projectile(projectile) => projectile.update(time),
+        };
+        self.body_mut().update(time);
+        result
+    }
+}
+
+pub enum GameObjectEffect {
+    LaunchProjectile(Projectile),
+    SpawnSpacecraft(Spacecraft),
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug, Default, Copy, PartialEq)]
+pub struct GameObjectBody {
+    pub position: Vec2,
+    pub velocity: Vec2,
+    pub rotation: f32,
+    pub angular_velocity: f32,
+    pub cur_time: f32,
+    #[serde(skip)]
+    pub acceleration: Vec2,
+    pub angular_acceleration: f32,
+}
+
+impl GameObjectBody {
+    pub fn new(position: Vec2, velocity: Vec2, rotation: f32, cur_time: f32) -> Self {
+        todo!("Try to remove serde(skip) above");
+        Self {
+            position,
+            velocity,
+            rotation,
+            angular_velocity: 0.,
+            acceleration: Vec2::ZERO,
+            angular_acceleration: 0.,
+            cur_time,
+        }
+    }
+    pub fn from_position(position: Vec2) -> Self {
+        Self {
+            position,
+            ..Default::default()
+        }
+    }
+    pub fn update(&mut self, time: f32) {
+        assert!(time >= self.cur_time);
+
+        let dt = time - self.cur_time;
+
+        self.position += self.velocity * dt + 0.5 * self.acceleration * dt * dt;
+        self.velocity += self.acceleration * dt;
+
+        self.rotation = (self.rotation
+            + self.angular_velocity * dt
+            + 0.5 * self.angular_acceleration * dt * dt)
+            % (PI * 2.);
+        self.angular_velocity += self.angular_acceleration * dt;
+
+        self.angular_acceleration = 0.;
+        self.acceleration = Vec2::ZERO;
+        self.cur_time = time;
+    }
+    pub fn relative_to_world(&self, relative_pos: Vec2) -> Vec2 {
+        relative_pos.rotate_rad(self.rotation) + self.position
     }
 }
 

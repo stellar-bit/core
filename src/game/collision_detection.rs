@@ -1,5 +1,24 @@
 use super::*;
 
+#[derive(PartialEq, PartialOrd, Debug, Clone, Copy)]
+struct CollisionInfo {
+    time: f32,
+    object_1: usize,
+    object_1_col_stamp: usize,
+    point_1: usize,
+    object_2: usize,
+    object_2_col_stamp: usize,
+    line_2: usize,
+}
+
+impl Eq for CollisionInfo {}
+
+impl Ord for CollisionInfo {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
 pub fn sat_collision_detect(convex_hull1: &Vec<Vec2>, convex_hull2: &Vec<Vec2>) -> bool {
     let num_vertices1 = convex_hull1.len();
     let num_vertices2 = convex_hull2.len();
@@ -33,6 +52,51 @@ pub fn sat_collision_detect(convex_hull1: &Vec<Vec2>, convex_hull2: &Vec<Vec2>) 
     }
 
     return true;
+}
+
+/// Checks whether obj 1 collides with obj 2 with one of its corners
+fn check_collision(
+    sharp_points: Vec<Vec2>,
+    other_points: Vec<Vec2>,
+    velocity: Vec2,
+    max_t: f32,
+) -> Option<(f32, usize, usize)> {
+    let mut collision: Option<(f32, usize, usize)> = None;
+
+    for (i, p) in sharp_points.into_iter().enumerate() {
+        for j in 0..other_points.len() {
+            let a = other_points[j];
+            let b = other_points[(j + 1) % other_points.len()];
+            let v = velocity;
+
+            let slope_1 = (b.y - a.y) / (b.x - a.x);
+            let y_1 = a.y - a.x * slope_1;
+            let slope_2 = (v.y) / (v.x);
+            let y_2 = p.y - p.x * slope_2;
+
+            let intercept = (y_2 - y_1) / (slope_1 - slope_2);
+
+            if intercept < a.x.min(b.x) || intercept > a.x.max(b.x) {
+                continue;
+            }
+
+            let time = (intercept - p.x) / (v.x);
+
+            if time < 0. || time > max_t {
+                continue;
+            }
+
+            if let Some(cur_answer) = &mut collision {
+                if time < cur_answer.0 {
+                    *cur_answer = (time, i, j);
+                }
+            } else {
+                collision = Some((time, i, j));
+            }
+        }
+    }
+
+    collision
 }
 
 // Helper function to find the minimum and maximum extent of a shape when projected onto an axis

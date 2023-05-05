@@ -17,7 +17,8 @@ impl ComponentWrapper for Block {
     fn body(&self) -> &ComponentBody {
         &self.body
     }
-    fn update(&mut self, _dt: f32) -> Vec<ComponentEffect> {
+    fn update(&mut self, time: f32) -> Vec<ComponentEffect> {
+        self.body.update(time);
         vec![]
     }
     fn mass(&self) -> f32 {

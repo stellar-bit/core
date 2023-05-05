@@ -16,12 +16,11 @@ pub use player::{Player, PlayerToken};
 pub use spacecraft::Spacecraft;
 pub use spacecraft::{
     Component, ComponentCmd, ComponentId, ComponentType, ComponentWrapper, Orientation,
-    SpacecraftEffect,
 };
 pub use star_base::{StarBase, StarBaseEffect};
 pub use {projectile::Projectile, projectile::ProjectileType};
 
-use std::{time::Duration};
+use std::time::Duration;
 
 use strum::IntoStaticStr;
 
@@ -30,7 +29,6 @@ pub use spacecraft_structure::{ComponentPlaceholder, SpacecraftStructure};
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct GameSync {
     pub last_update: Duration,
-    pub delta_time: f32,
     pub frame: usize,
 }
 
@@ -38,7 +36,6 @@ impl Default for GameSync {
     fn default() -> Self {
         Self {
             last_update: now(),
-            delta_time: 0.,
             frame: 0,
         }
     }
@@ -46,8 +43,6 @@ impl Default for GameSync {
 
 impl GameSync {
     pub fn update(&mut self) {
-        self.delta_time =
-            (now() - self.last_update.min(now() - Duration::from_millis(1))).as_secs_f32();
         self.last_update = now();
         self.frame += 1;
     }
@@ -76,6 +71,7 @@ pub struct Game {
     pub game_objects: HashMap<GameObjectId, GameObject>,
     #[serde(skip)]
     pub events: Vec<GameEvent>,
+    pub time_elapsed: f32,
 }
 
 impl Game {
@@ -83,9 +79,11 @@ impl Game {
         Self::default()
     }
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self, dt: f32) {
         self.sync.update();
         self.events = vec![];
+
+        self.time_elapsed += dt;
 
         self.update_collisions();
         self.update_game_objects();
@@ -95,32 +93,18 @@ impl Game {
         self.game_objects
             .drain_filter(|_, game_object| game_object.health() <= 0.0);
 
-        let mut spacecraft_effects = Vec::new();
-        let mut star_base_effects = Vec::new();
+        let mut effects = vec![];
         for game_object in self.game_objects.values_mut() {
-            match game_object {
-                GameObject::Spacecraft(spacecraft) => {
-                    spacecraft_effects.extend(spacecraft.update(self.sync.delta_time));
-                }
-                GameObject::StarBase(star_base) => {
-                    star_base_effects.extend(star_base.update(self.sync.delta_time));
-                }
-                GameObject::Projectile(projectile) => {
-                    projectile.update(self.sync.delta_time);
-                }
-                _ => (),
-            }
-            game_object.transform_mut().update(self.sync.delta_time);
-        }
-        for effect in spacecraft_effects {
-            self.handle_spacecraft_effect(effect);
-        }
-        for effect in star_base_effects {
-            self.handle_star_base_effect(effect);
+            effects.extend(game_object.update(self.time_elapsed));
         }
 
-        // apply gravity between asteroids
+        for effect in effects {
+            self.handle_game_object_effect(effect);
+        }
 
+        self.apply_gravity();
+    }
+    pub fn apply_gravity(&mut self) {
         let mut asteroids = self
             .game_objects
             .values_mut()
@@ -133,19 +117,17 @@ impl Game {
         for i in 0..asteroids.len() {
             for j in i + 1..asteroids.len() {
                 let distance = asteroids[i]
-                    .transform
+                    .body
                     .position
                     .distance(asteroids[j].transform().position);
                 let force = 100. / distance.powi(2).max(5.);
-                let direction = (asteroids[j].transform.position
-                    - asteroids[i].transform().position)
-                    .normalize();
+                let direction =
+                    (asteroids[j].body.position - asteroids[i].transform().position).normalize();
                 asteroids[i].transform_mut().acceleration += direction * force;
                 asteroids[j].transform_mut().acceleration -= direction * force;
             }
         }
     }
-
     pub fn execute_cmd(&mut self, user: User, cmd: GameCmd) -> Result<(), GameCmdExecutionError> {
         self.cmds_history.push(ExecutedGameCmd {
             user,
@@ -155,7 +137,7 @@ impl Game {
         match cmd {
             GameCmd::SpawnAsteroid(pos, vel) => {
                 let new_asteroid = Asteroid::new(
-                    Transform::new(pos, vel, 0.),
+                    GameObjectBody::new(pos, vel, 0., self.time_elapsed),
                     rand::random::<f32>() * 5. + 2.,
                     rand::random(),
                 );
@@ -190,9 +172,10 @@ impl Game {
                         .take_materials(materials_required)
                 {
                     star_base.build_spacecraft(&spacecraft_structure, hangar_index)
-                }
-                else {
-                    return Err(GameCmdExecutionError::Other("Couldn't build spacecraft".to_string()));
+                } else {
+                    return Err(GameCmdExecutionError::Other(
+                        "Couldn't build spacecraft".to_string(),
+                    ));
                 }
             }
             GameCmd::DeploySpacecraft(game_object_id, hangar_index) => {
@@ -241,7 +224,7 @@ impl Game {
                 self.players.insert(player_id, Player::new());
                 self.game_objects
                     .insert_with_unique_key(GameObject::StarBase(StarBase::new(
-                        Transform::from_position(
+                        GameObjectBody::from_position(
                             Vec2::random_direction() * 1000. * rand::random::<f32>().sqrt(),
                         ),
                         player_id,
@@ -251,9 +234,15 @@ impl Game {
         Ok(())
     }
 
-    fn handle_star_base_effect(&mut self, effect: StarBaseEffect) {
+    fn handle_game_object_effect(&mut self, effect: GameObjectEffect) {
         match effect {
-            StarBaseEffect::SpawnSpacecraft(spacecraft) => {
+            GameObjectEffect::LaunchProjectile(projectile) => {
+                self.events
+                    .push(GameEvent::ProjectileLaunched(projectile.clone()));
+                self.game_objects
+                    .insert_with_unique_key(GameObject::Projectile(projectile));
+            }
+            GameObjectEffect::SpawnSpacecraft(spacecraft) => {
                 self.events
                     .push(GameEvent::SpacecraftDeployed(spacecraft.clone()));
                 self.game_objects
@@ -262,92 +251,14 @@ impl Game {
         }
     }
 
-    fn handle_spacecraft_effect(&mut self, effect: SpacecraftEffect) {
-        match effect {
-            SpacecraftEffect::LaunchProjectile(projectile) => {
-                self.events
-                    .push(GameEvent::ProjectileLaunched(projectile.clone()));
-                self.game_objects
-                    .insert_with_unique_key(GameObject::Projectile(projectile));
-            }
-        }
-    }
-
     fn update_collisions(&mut self) {
         let mut destroyed_game_objects: Vec<(GameObjectId, GameObjectId)> = vec![];
 
         let game_object_ids = self.game_objects.keys().copied().collect::<Vec<_>>();
+        
+        // -------------------COLLISIONS------------------- //
 
-        for (i, id1) in game_object_ids.iter().enumerate() {
-            for id2 in game_object_ids.iter().skip(i + 1) {
-                if (self.game_objects[id1].destroyed() || self.game_objects[id2].destroyed())
-                    || (self.game_objects[id1].owner().is_some()
-                        && self.game_objects[id1].owner() == self.game_objects[id2].owner())
-                {
-                    continue;
-                }
-                if self.game_objects[id1].collides(&self.game_objects[id2]) {
-                    // why is this inaccurate? many reasons, first of all the damage isn't applied as an multiple of area overlapping, each object will absorb energy in a different way, the collision center is not actually the point of collision
-                    let energy = (self.game_objects[id1].transform().velocity
-                        - self.game_objects[id2].transform().velocity)
-                        .length()
-                        .powi(2)
-                        * self.game_objects[id1].destructive_power()
-                        * self.game_objects[id2].destructive_power()
-                        * self.sync.delta_time;
-
-                    let damage = energy
-                        .min(self.game_objects[id1].health())
-                        .min(self.game_objects[id2].health());
-                    // let position = (game_objects[i].1.transform().position+game_objects[j].1.transform().position) / 2.;
-
-                    let position1 = self.game_objects[id1].transform().position;
-                    let position2 = self.game_objects[id2].transform().position;
-                    let materials_reward1 = self
-                        .game_objects
-                        .get_mut(id1)
-                        .unwrap()
-                        .apply_damage(damage, position2);
-                    let materials_reward2 = self
-                        .game_objects
-                        .get_mut(id2)
-                        .unwrap()
-                        .apply_damage(damage, position1);
-
-                    if let Some(owner) = self.game_objects[id1].owner() {
-                        for (material, amount) in materials_reward2 {
-                            *self
-                                .players
-                                .get_mut(&owner)
-                                .unwrap()
-                                .materials
-                                .entry(material)
-                                .or_insert(0.) += amount;
-                        }
-                    }
-
-                    if let Some(owner) = self.game_objects[id2].owner() {
-                        for (material, amount) in materials_reward1 {
-                            *self
-                                .players
-                                .get_mut(&owner)
-                                .unwrap()
-                                .materials
-                                .entry(material)
-                                .or_insert(0.) += amount;
-                        }
-                    }
-
-                    if self.game_objects[id1].health() <= 0. {
-                        destroyed_game_objects.push((*id1, *id2));
-                    }
-
-                    if self.game_objects[id2].health() <= 0. {
-                        destroyed_game_objects.push((*id2, *id1));
-                    }
-                }
-            }
-        }
+        // -------------------END COLLISIONS------------------- //
 
         for (destroyed, destroyer) in destroyed_game_objects {
             self.events.push(GameEvent::GameObjectDestroyed(
@@ -410,54 +321,6 @@ impl Game {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, Default, Copy, PartialEq)]
-pub struct Transform {
-    pub position: Vec2,
-    pub velocity: Vec2,
-    pub rotation: f32,
-    pub angular_velocity: f32,
-    #[serde(skip)]
-    pub acceleration: Vec2,
-    pub angular_acceleration: f32,
-}
-
-// the velocity applied each frame is the average velocity
-// at the end of each frame velocity is updated and acceleration set to zero
-impl Transform {
-    pub fn new(position: Vec2, velocity: Vec2, rotation: f32) -> Self {
-        Self {
-            position,
-            velocity,
-            rotation,
-            angular_velocity: 0.,
-            acceleration: Vec2::ZERO,
-            angular_acceleration: 0.,
-        }
-    }
-    pub fn from_position(position: Vec2) -> Self {
-        Self {
-            position,
-            ..Default::default()
-        }
-    }
-    pub fn update(&mut self, dt: f32) {
-        self.position += self.velocity * dt + 0.5 * self.acceleration * dt * dt;
-        self.velocity += self.acceleration * dt;
-
-        self.rotation = (self.rotation
-            + self.angular_velocity * dt
-            + 0.5 * self.angular_acceleration * dt * dt)
-            % (PI * 2.); // doesn't need to be as accurate (no average)
-        self.angular_velocity += self.angular_acceleration * dt;
-
-        self.angular_acceleration = 0.;
-        self.acceleration = Vec2::ZERO;
-    }
-    pub fn relative_to_world(&self, relative_pos: Vec2) -> Vec2 {
-        relative_pos.rotate_rad(self.rotation) + self.position
-    }
-}
-
 #[derive(Serialize, Deserialize, Clone, Debug)]
 // #[serde(tag = "cmd", content = "args")]
 pub enum GameCmd {
@@ -472,7 +335,7 @@ pub fn run_game(game: Arc<RwLock<Game>>, tick_rate: u32) {
     let target_duration = Duration::from_secs_f32(1. / tick_rate as f32);
     loop {
         let start = std::time::Instant::now();
-        game.write().unwrap().update();
+        game.write().unwrap().update(target_duration.as_secs_f32());
         let elapsed = start.elapsed();
         if elapsed < target_duration {
             std::thread::sleep(target_duration - elapsed);

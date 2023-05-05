@@ -2,7 +2,7 @@ use crate::prelude::*;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Projectile {
-    pub transform: Transform,
+    pub body: GameObjectBody,
     pub owner: PlayerToken,
     pub health: f32,
     pub mass: f32,
@@ -13,18 +13,19 @@ pub struct Projectile {
 }
 
 impl Projectile {
-    pub fn update(&mut self, dt: f32) {
-        self.lifetime -= dt;
+    pub fn update(&mut self, time: f32) -> Vec<GameObjectEffect>{
+        self.lifetime -= time-self.body.cur_time;
+        vec![]
     }
 }
 
 impl Projectile {
-    pub fn transform(&self) -> &Transform {
-        &self.transform
+    pub fn transform(&self) -> &GameObjectBody {
+        &self.body
     }
 
-    pub fn transform_mut(&mut self) -> &mut Transform {
-        &mut self.transform
+    pub fn transform_mut(&mut self) -> &mut GameObjectBody {
+        &mut self.body
     }
     pub fn bounds(&self) -> Vec<Vec2> {
         vec![
@@ -57,7 +58,7 @@ impl Projectile {
         }
     }
     pub fn collides_point(&self, position: Vec2) -> bool {
-        self.transform.position.distance(position) < 10.
+        self.body.position.distance(position) < 10.
     }
     pub fn destructive_power(&self) -> f32 {
         self.destructive_power
@@ -72,13 +73,7 @@ pub enum ProjectileType {
 }
 
 impl ProjectileType {
-    pub fn construct(
-        &self,
-        position: Vec2,
-        velocity: Vec2,
-        rotation: f32,
-        owner: PlayerToken,
-    ) -> Projectile {
+    pub fn construct(&self, body: GameObjectBody, owner: PlayerToken) -> Projectile {
         let (health, mass, scale, lifetime, destructive_power) = match &self {
             ProjectileType::Bullet => (50., 10., vec2(0.5, 0.2), 5., 2.),
             ProjectileType::Missile => (500., 100., vec2(0.3, 0.3), 20., 3.),
@@ -86,7 +81,7 @@ impl ProjectileType {
         };
 
         Projectile {
-            transform: Transform::new(position, velocity, rotation),
+            body,
             owner,
             health,
             mass,

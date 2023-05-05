@@ -1,21 +1,21 @@
 mod hangar;
 
-use crate::game::{Transform};
+use crate::game::GameObjectBody;
 use crate::prelude::*;
 use glam::Vec2;
 use hangar::{Hangar, HangarEffect};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct StarBase {
-    pub transform: Transform,
+    pub body: GameObjectBody,
     pub owner: PlayerToken,
     health: f32,
     pub hangars: Vec<Hangar>,
 }
 
 impl StarBase {
-    pub fn transform_mut(&mut self) -> &mut Transform {
-        &mut self.transform
+    pub fn transform_mut(&mut self) -> &mut GameObjectBody {
+        &mut self.body
     }
     pub fn bounds(&self) -> Vec<Vec2> {
         vec![
@@ -25,8 +25,8 @@ impl StarBase {
             vec2(10., -10.),
         ]
     }
-    pub fn transform(&self) -> &Transform {
-        &self.transform
+    pub fn transform(&self) -> &GameObjectBody {
+        &self.body
     }
     pub fn owner(&self) -> Option<PlayerToken> {
         Some(self.owner)
@@ -42,14 +42,14 @@ impl StarBase {
         self.health <= 0.
     }
     pub fn collides_point(&self, position: Vec2) -> bool {
-        self.transform.position.distance(position) < 10.
+        self.body.position.distance(position) < 10.
     }
 }
 
 impl StarBase {
-    pub fn new(transform: Transform, owner: PlayerToken) -> Self {
+    pub fn new(transform: GameObjectBody, owner: PlayerToken) -> Self {
         Self {
-            transform,
+            body: transform,
             owner,
             health: 10000.,
             hangars: vec![Hangar::new(), Hangar::new()],
@@ -81,7 +81,7 @@ impl StarBase {
             for hangar_effect in hangar_effects {
                 match hangar_effect {
                     HangarEffect::Deploy(structure) => {
-                        let mut spacecraft_transform = self.transform.clone();
+                        let mut spacecraft_transform = self.body.clone();
                         spacecraft_transform.angular_velocity = 0.;
                         spacecraft_transform.position.y += 15.;
 

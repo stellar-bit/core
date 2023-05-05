@@ -5,17 +5,14 @@ pub use component::*;
 use std::collections::BTreeMap;
 use std::collections::HashSet;
 
-use super::Transform;
+use super::GameObjectBody;
 
-pub enum SpacecraftEffect {
-    LaunchProjectile(Projectile), // position, velocity, rotation
-}
 
 #[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct Spacecraft {
     pub owner: PlayerToken,
     pub components: BTreeMap<ComponentId, Component>,
-    pub transform: Transform,
+    pub body: GameObjectBody,
     central_component: ComponentId,
     pub inertia: f32,
     pub center_of_mass: Vec2,
@@ -28,7 +25,11 @@ pub struct Spacecraft {
 // needs a lot of caching
 impl Spacecraft {
     /// Receives a verified structure and builds a spacecraft from it
-    pub fn build(structure: SpacecraftStructure, owner: PlayerToken, transform: Transform) -> Self {
+    pub fn build(
+        structure: SpacecraftStructure,
+        owner: PlayerToken,
+        transform: GameObjectBody,
+    ) -> Self {
         let mut components = BTreeMap::new();
         let mut central_component = None;
         for (index, component_placeholder) in structure
@@ -55,7 +56,7 @@ impl Spacecraft {
         let mut spacecraft = Self {
             owner,
             components,
-            transform,
+            body: transform,
             central_component,
             tags: structure.tags,
             ..Default::default()
@@ -63,13 +64,13 @@ impl Spacecraft {
         spacecraft.reconstruct();
         spacecraft
     }
-    pub fn update(&mut self, dt: f32) -> Vec<SpacecraftEffect> {
+    pub fn update(&mut self, time: f32) -> Vec<GameObjectEffect> {
         self.reconstruct();
 
         let mut result = vec![];
         let mut forces = vec![];
         for (_, component) in &mut self.components {
-            for component_effect in component.update(dt) {
+            for component_effect in component.update(time) {
                 match component_effect {
                     ComponentEffect::CreateProjectile(
                         projectile_type,
@@ -77,14 +78,15 @@ impl Spacecraft {
                         velocity,
                         rotation,
                     ) => {
-                        result.push(SpacecraftEffect::LaunchProjectile(
+                        result.push(GameObjectEffect::LaunchProjectile(
                             projectile_type.construct(
-                                (position - self.center_of_mass)
-                                    .rotate_rad(self.transform.rotation)
-                                    + self.transform.position,
-                                velocity.rotate_rad(self.transform.rotation)
-                                    + self.transform.velocity,
-                                rotation + self.transform.rotation,
+                                GameObjectBody::new(
+                                    (position - self.center_of_mass).rotate_rad(self.body.rotation)
+                                        + self.body.position,
+                                    velocity.rotate_rad(self.body.rotation) + self.body.velocity,
+                                    rotation + self.body.rotation,
+                                    time,
+                                ),
                                 self.owner,
                             ),
                         ));
@@ -99,7 +101,9 @@ impl Spacecraft {
 
         forces
             .into_iter()
-            .for_each(|x| self.apply_force_local(x.0, x.1, dt));
+            .for_each(|x| self.apply_force_local(x.0, x.1, time-self.body.cur_time));
+
+        self.body.update(time);
 
         result
     }
@@ -159,8 +163,8 @@ impl Spacecraft {
 
         // here was a message that it needs fixing i removed it because i didn't find anything...
         let new_center_of_mass_offset = self.center_of_mass() - self.center_of_mass;
-        self.transform.position +=
-            Vec2::from_angle(self.transform.rotation).rotate(new_center_of_mass_offset);
+        self.body.position +=
+            Vec2::from_angle(self.body.rotation).rotate(new_center_of_mass_offset);
         self.center_of_mass += new_center_of_mass_offset;
 
         self.inertia = self.inertia();
@@ -185,9 +189,9 @@ impl Spacecraft {
     }
     /// Applies a force in a local coordinate system
     fn apply_force_local(&mut self, origin: Vec2, direction: Vec2, dt: f32) {
-        self.transform.acceleration +=
-            direction.rotate(Vec2::from_angle(self.transform.rotation)) / self.compute_mass() / dt;
-        self.transform.angular_acceleration +=
+        self.body.acceleration +=
+            direction.rotate(Vec2::from_angle(self.body.rotation)) / self.compute_mass() / dt;
+        self.body.angular_acceleration +=
             (origin - self.center_of_mass).perp_dot(direction / dt) / self.inertia;
     }
     fn center_of_mass(&self) -> Vec2 {
@@ -205,8 +209,7 @@ impl Spacecraft {
         }
     }
     pub fn component_position_local(&self, component_body: &ComponentBody) -> Vec2 {
-        (component_body.centered_position() - self.center_of_mass)
-            .rotate_rad(self.transform.rotation)
+        (component_body.centered_position() - self.center_of_mass).rotate_rad(self.body.rotation)
     }
 }
 
@@ -214,11 +217,11 @@ impl Spacecraft {
     pub fn bounds(&self) -> Vec<Vec2> {
         self.bounds.clone()
     }
-    pub fn transform_mut(&mut self) -> &mut Transform {
-        &mut self.transform
+    pub fn transform_mut(&mut self) -> &mut GameObjectBody {
+        &mut self.body
     }
-    pub fn transform(&self) -> &Transform {
-        &self.transform
+    pub fn transform(&self) -> &GameObjectBody {
+        &self.body
     }
     pub fn health(&self) -> f32 {
         self.health
@@ -229,15 +232,15 @@ impl Spacecraft {
     }
 
     pub fn apply_damage(&mut self, damage: f32, position: Vec2) -> Vec<(Material, f32)> {
-        let position = position - self.transform.position;
+        let position = position - self.body.position;
         let mut result = vec![];
         let mut damage = damage;
         let mut components = self.components.iter_mut().collect::<Vec<_>>();
         components.sort_by(|a, b| {
             let a_position = (a.1.body().centered_position() - self.center_of_mass)
-                .rotate_rad(self.transform.rotation);
+                .rotate_rad(self.body.rotation);
             let b_position = (b.1.body().centered_position() - self.center_of_mass)
-                .rotate_rad(self.transform.rotation);
+                .rotate_rad(self.body.rotation);
             a_position
                 .distance(position)
                 .partial_cmp(&b_position.distance(position))
@@ -278,6 +281,6 @@ impl Spacecraft {
         Some(self.owner)
     }
     pub fn collides_point(&self, position: Vec2) -> bool {
-        self.transform.position.distance(position) < 5.
+        self.body.position.distance(position) < 5.
     }
 }
