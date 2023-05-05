@@ -133,7 +133,6 @@ pub struct GameObjectBody {
 
 impl GameObjectBody {
     pub fn new(position: Vec2, velocity: Vec2, rotation: f32, cur_time: f32) -> Self {
-        todo!("Try to remove serde(skip) above");
         Self {
             position,
             velocity,
