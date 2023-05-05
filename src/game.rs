@@ -17,7 +17,7 @@ pub use spacecraft::Spacecraft;
 pub use spacecraft::{
     Component, ComponentCmd, ComponentId, ComponentType, ComponentWrapper, Orientation,
 };
-pub use star_base::{StarBase, StarBaseEffect};
+pub use star_base::{StarBase};
 pub use {projectile::Projectile, projectile::ProjectileType};
 
 use std::time::Duration;

@@ -105,7 +105,7 @@ impl GameObject {
     pub fn update(&mut self, time: f32) -> Vec<GameObjectEffect> {
         let result = match self {
             GameObject::Asteroid(asteroid) => vec![],
-            GameObject::StarBase(star_base) => vec![],
+            GameObject::StarBase(star_base) => star_base.update(time),
             GameObject::Spacecraft(spacecraft) => spacecraft.update(time),
             GameObject::Projectile(projectile) => projectile.update(time),
         };

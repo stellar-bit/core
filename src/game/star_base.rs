@@ -74,7 +74,7 @@ impl StarBase {
         };
         hangar.deploy = true;
     }
-    pub fn update(&mut self, time: f32) -> Vec<StarBaseEffect> {
+    pub fn update(&mut self, time: f32) -> Vec<GameObjectEffect> {
         let dt = time-self.body.cur_time;
         let mut result = vec![];
         for hangar in self.hangars.iter_mut() {
@@ -86,7 +86,7 @@ impl StarBase {
                         spacecraft_transform.angular_velocity = 0.;
                         spacecraft_transform.position.y += 15.;
 
-                        result.push(StarBaseEffect::SpawnSpacecraft(Spacecraft::build(
+                        result.push(GameObjectEffect::SpawnSpacecraft(Spacecraft::build(
                             structure,
                             self.owner,
                             spacecraft_transform,
@@ -97,9 +97,4 @@ impl StarBase {
         }
         result
     }
-}
-
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub enum StarBaseEffect {
-    SpawnSpacecraft(Spacecraft),
 }
