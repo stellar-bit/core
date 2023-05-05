@@ -44,8 +44,9 @@ impl ComponentWrapper for Engine {
         &self.body
     }
 
-    fn update(&mut self, dt: f32) -> Vec<ComponentEffect> {
+    fn update(&mut self, time: f32) -> Vec<ComponentEffect> {
         let mut result = vec![];
+        let dt = time-self.body.cur_time;
         if self.active && self.fuel > 0. {
             let thrust = self.fuel.min(self.thrust * dt * self.power);
             self.fuel -= thrust;
