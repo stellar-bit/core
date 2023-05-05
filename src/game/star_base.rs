@@ -74,7 +74,8 @@ impl StarBase {
         };
         hangar.deploy = true;
     }
-    pub fn update(&mut self, dt: f32) -> Vec<StarBaseEffect> {
+    pub fn update(&mut self, time: f32) -> Vec<StarBaseEffect> {
+        let dt = time-self.body.cur_time;
         let mut result = vec![];
         for hangar in self.hangars.iter_mut() {
             let hangar_effects = hangar.update(dt);
