@@ -126,7 +126,6 @@ pub struct GameObjectBody {
     pub rotation: f32,
     pub angular_velocity: f32,
     pub cur_time: f32,
-    #[serde(skip)]
     pub acceleration: Vec2,
     pub angular_acceleration: f32,
 }
