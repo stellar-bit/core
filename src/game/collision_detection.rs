@@ -79,7 +79,7 @@ pub fn check_sharp_collision(
 
             let time = (intercept - p.x) / (v.x);
 
-            if time < 0. || time > max_t {
+            if time.is_nan() || time < 0. || time > max_t {
                 continue;
             }
 
