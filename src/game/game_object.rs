@@ -95,6 +95,9 @@ impl GameObject {
         collision_detection::sat_collision_detect(&self.body().bounds, &other_bounds)
     }
     pub fn update(&mut self, time: f32) -> Vec<GameObjectEffect> {
+        if time - self.body().cur_time == 0. {
+            return vec![];
+        }
         let result = match self {
             GameObject::Asteroid(asteroid) => vec![],
             GameObject::StarBase(star_base) => star_base.update(time),
