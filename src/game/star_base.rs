@@ -14,20 +14,6 @@ pub struct StarBase {
 }
 
 impl StarBase {
-    pub fn transform_mut(&mut self) -> &mut GameObjectBody {
-        &mut self.body
-    }
-    pub fn bounds(&self) -> Vec<Vec2> {
-        vec![
-            vec2(10., 10.),
-            vec2(-10., 10.),
-            vec2(-10., -10.),
-            vec2(10., -10.),
-        ]
-    }
-    pub fn transform(&self) -> &GameObjectBody {
-        &self.body
-    }
     pub fn owner(&self) -> Option<PlayerToken> {
         Some(self.owner)
     }
@@ -95,6 +81,13 @@ impl StarBase {
                 }
             }
         }
+
+        self.body.bounds = vec![
+            vec2(10., 10.),
+            vec2(-10., 10.),
+            vec2(-10., -10.),
+            vec2(10., -10.),
+        ];
         result
     }
 }

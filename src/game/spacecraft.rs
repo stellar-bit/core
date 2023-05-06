@@ -17,7 +17,6 @@ pub struct Spacecraft {
     pub inertia: f32,
     pub center_of_mass: Vec2,
     pub mass: f32,
-    bounds: Vec<Vec2>,
     pub tags: Vec<String>,
     health: f32,
 }
@@ -80,13 +79,11 @@ impl Spacecraft {
                     ) => {
                         result.push(GameObjectEffect::LaunchProjectile(
                             projectile_type.construct(
-                                GameObjectBody::new(
-                                    (position - self.center_of_mass).rotate_rad(self.body.rotation)
-                                        + self.body.position,
-                                    velocity.rotate_rad(self.body.rotation) + self.body.velocity,
-                                    rotation + self.body.rotation,
-                                    time,
-                                ),
+                                (position - self.center_of_mass).rotate_rad(self.body.rotation)
+                                    + self.body.position,
+                                velocity.rotate_rad(self.body.rotation) + self.body.velocity,
+                                rotation + self.body.rotation,
+                                time,
                                 self.owner,
                             ),
                         ));
@@ -126,6 +123,7 @@ impl Spacecraft {
         let Some(central_component) = self.components.get(&self.central_component) else {
             self.components.clear();
             self.health = 0.;
+            self.body.bounds.clear();
             return;
         };
 
@@ -155,7 +153,7 @@ impl Spacecraft {
             .map(|x| x.body().corner_points())
             .flatten()
             .collect::<Vec<Vec2>>();
-        self.bounds = convex_hull(points)
+        self.body.bounds = convex_hull(points)
             .into_iter()
             .map(|ver| ver - self.center_of_mass)
             .collect();
@@ -214,15 +212,6 @@ impl Spacecraft {
 }
 
 impl Spacecraft {
-    pub fn bounds(&self) -> Vec<Vec2> {
-        self.bounds.clone()
-    }
-    pub fn transform_mut(&mut self) -> &mut GameObjectBody {
-        &mut self.body
-    }
-    pub fn transform(&self) -> &GameObjectBody {
-        &self.body
-    }
     pub fn health(&self) -> f32 {
         self.health
     }

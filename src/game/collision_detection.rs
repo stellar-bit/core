@@ -1,14 +1,10 @@
 use super::*;
 
 #[derive(PartialEq, PartialOrd, Debug, Clone, Copy)]
-struct CollisionInfo {
-    time: f32,
-    object_1: usize,
-    object_1_col_stamp: usize,
-    point_1: usize,
-    object_2: usize,
-    object_2_col_stamp: usize,
-    line_2: usize,
+pub struct CollisionInfo {
+    pub time: f32,
+    pub sharp_obj: (GameObjectId, usize, usize),
+    pub other_obj: (GameObjectId, usize, usize),
 }
 
 impl Eq for CollisionInfo {}
@@ -55,12 +51,13 @@ pub fn sat_collision_detect(convex_hull1: &Vec<Vec2>, convex_hull2: &Vec<Vec2>) 
 }
 
 /// Checks whether obj 1 collides with obj 2 with one of its corners
-fn check_collision(
+pub fn check_sharp_collision(
     sharp_points: Vec<Vec2>,
     other_points: Vec<Vec2>,
     velocity: Vec2,
     max_t: f32,
 ) -> Option<(f32, usize, usize)> {
+
     let mut collision: Option<(f32, usize, usize)> = None;
 
     for (i, p) in sharp_points.into_iter().enumerate() {

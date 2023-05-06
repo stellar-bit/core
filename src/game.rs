@@ -20,11 +20,15 @@ pub use spacecraft::{
 pub use star_base::{StarBase};
 pub use {projectile::Projectile, projectile::ProjectileType};
 
+use std::cmp::Reverse;
+use std::collections::BinaryHeap;
 use std::time::Duration;
 
 use strum::IntoStaticStr;
 
 pub use spacecraft_structure::{ComponentPlaceholder, SpacecraftStructure};
+
+use self::collision_detection::{CollisionInfo, check_sharp_collision};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct GameSync {
@@ -119,12 +123,12 @@ impl Game {
                 let distance = asteroids[i]
                     .body
                     .position
-                    .distance(asteroids[j].transform().position);
+                    .distance(asteroids[j].body.position);
                 let force = 100. / distance.powi(2).max(5.);
                 let direction =
-                    (asteroids[j].body.position - asteroids[i].transform().position).normalize();
-                asteroids[i].transform_mut().acceleration += direction * force;
-                asteroids[j].transform_mut().acceleration -= direction * force;
+                    (asteroids[j].body.position - asteroids[i].body.position).normalize();
+                asteroids[i].body.acceleration += direction * force;
+                asteroids[j].body.acceleration -= direction * force;
             }
         }
     }
@@ -137,7 +141,7 @@ impl Game {
         match cmd {
             GameCmd::SpawnAsteroid(pos, vel) => {
                 let new_asteroid = Asteroid::new(
-                    GameObjectBody::new(pos, vel, 0., self.time_elapsed),
+                    pos, vel, self.time_elapsed,
                     rand::random::<f32>() * 5. + 2.,
                     rand::random(),
                 );
@@ -258,6 +262,37 @@ impl Game {
         
         // -------------------COLLISIONS------------------- //
 
+        let mut collisions_pq = BinaryHeap::new();
+
+        macro_rules! add_collisions {
+            ($obj_1_id:expr, $obj_2_id:expr) => {
+                if let Some(collision) = self.check_sharp_object_collision($obj_1_id, $obj_2_id) {
+                    collisions_pq.push(Reverse(collision));
+                }
+                if let Some(collision) = self.check_sharp_object_collision($obj_2_id, $obj_1_id) {
+                    collisions_pq.push(Reverse(collision));
+                }
+            };
+        }
+
+        for i in 0..game_object_ids.len() {
+            for j in i+1..game_object_ids.len() {
+                add_collisions!(game_object_ids[i], game_object_ids[j]);
+            }
+        }
+
+        while let Some(Reverse(col)) = collisions_pq.pop() {
+            if  self.handle_collision(col) {
+                for &other_id in &game_object_ids {
+                    if other_id != col.sharp_obj.0 {
+                        add_collisions!(col.sharp_obj.0, other_id);
+                    }
+                    if other_id != col.other_obj.0 {
+                        add_collisions!(col.other_obj.0, other_id);
+                    }
+                }
+            }
+        }
         // -------------------END COLLISIONS------------------- //
 
         for (destroyed, destroyer) in destroyed_game_objects {
@@ -266,6 +301,68 @@ impl Game {
                 self.game_objects.get(&destroyer).unwrap().clone(),
             ));
         }
+    }
+
+    /// Returns true if collision was valid and handled
+    pub fn handle_collision(&mut self, col: CollisionInfo) -> bool {
+        let (sharp_obj_id, sharp_obj_stamp, sharp_obj_point) = col.sharp_obj;
+        let (other_obj_id, other_obj_stamp, other_obj_line) = col.other_obj;
+
+        if sharp_obj_stamp != self.game_objects[&sharp_obj_id].body().updated || other_obj_stamp != self.game_objects[&other_obj_id].body().updated {
+            return false;
+        }
+
+        self.game_objects.get_mut(&sharp_obj_id).unwrap().update_fixed(col.time);
+        self.game_objects.get_mut(&other_obj_id).unwrap().update_fixed(col.time);
+
+        let sharp_obj = self.game_objects.get(&sharp_obj_id).unwrap();
+        let other_obj = self.game_objects.get(&other_obj_id).unwrap();
+
+        let col_line = (other_obj.body().point_position(other_obj_line), other_obj.body().point_position((other_obj_line+1)%other_obj.body().bounds.len()));
+
+        let normal = (col_line.0-col_line.1).perp().normalize();
+
+        let mass1 = sharp_obj.mass();
+        let mass2 = other_obj.mass();
+
+        let impulse_numerator = -2. * (other_obj.body().velocity-sharp_obj.body().velocity).dot(normal);
+        let impulse_denominator = (1./mass1) + (1./mass2);
+        let impulse = impulse_numerator/impulse_denominator;
+
+        let sharp_obj = self.game_objects.get_mut(&sharp_obj_id).unwrap().body_mut();
+        sharp_obj.velocity -= impulse * normal / mass1;
+        sharp_obj.update_fixed(col.time+0.001);
+
+        let other_obj = self.game_objects.get_mut(&other_obj_id).unwrap();
+
+        other_obj.body_mut().velocity += impulse * normal / mass1;
+        other_obj.update_fixed(col.time+0.001);
+
+        true
+    }
+
+    pub fn check_sharp_object_collision(&self, sharp_obj_id: GameObjectId, other_obj_id: GameObjectId) -> Option<CollisionInfo> {
+        let mut sharp_body = self.game_objects[&sharp_obj_id].body().clone();
+        let mut other_body = self.game_objects[&other_obj_id].body().clone();
+
+        let cur_time = sharp_body.cur_time.max(other_body.cur_time);
+
+        sharp_body.position += sharp_body.velocity*(cur_time-sharp_body.cur_time);
+        other_body.position += other_body.velocity*(cur_time-other_body.cur_time);
+
+        sharp_body.velocity -= other_body.velocity;
+        other_body.velocity = Vec2::ZERO;
+
+        let sharp_points = sharp_body.bounds.clone().into_iter().map(|x| sharp_body.relative_to_world(x)).collect();
+        let other_points = other_body.bounds.clone().into_iter().map(|x| sharp_body.relative_to_world(x)).collect();
+
+        check_sharp_collision(sharp_points, other_points, sharp_body.velocity, self.time_elapsed-cur_time).map(|(dt, sharp_point, other_line)| {
+            CollisionInfo {
+                time: cur_time+dt,
+                sharp_obj: (sharp_obj_id, sharp_body.updated, sharp_point),
+                other_obj: (other_obj_id, other_body.updated, other_line)
+            }
+        })
     }
 
     pub fn spacecrafts(&self) -> Vec<&Spacecraft> {

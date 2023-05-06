@@ -66,14 +66,6 @@ impl GameObject {
             GameObject::Projectile(projectile) => projectile.health(),
         }
     }
-    pub fn bounds(&self) -> Vec<Vec2> {
-        match self {
-            GameObject::Asteroid(asteroid) => asteroid.bounds(),
-            GameObject::StarBase(star_base) => star_base.bounds(),
-            GameObject::Spacecraft(spacecraft) => spacecraft.bounds(),
-            GameObject::Projectile(projectile) => projectile.bounds(),
-        }
-    }
     pub fn destructive_power(&self) -> f32 {
         match self {
             GameObject::Projectile(projectile) => projectile.destructive_power(),
@@ -92,7 +84,7 @@ impl GameObject {
         let pos_offset = self.body().position - other.body().position;
 
         let other_bounds = other
-            .bounds()
+            .body().bounds
             .iter()
             .map(|&ver| {
                 let rotation = other.body().rotation - self.body().rotation;
@@ -100,7 +92,7 @@ impl GameObject {
             })
             .collect();
 
-        collision_detection::sat_collision_detect(&self.bounds(), &other_bounds)
+        collision_detection::sat_collision_detect(&self.body().bounds, &other_bounds)
     }
     pub fn update(&mut self, time: f32) -> Vec<GameObjectEffect> {
         let result = match self {
@@ -112,6 +104,17 @@ impl GameObject {
         self.body_mut().update(time);
         result
     }
+    /// Less accurate update but can be used during collisions
+    pub fn update_fixed(&mut self, time: f32) -> Vec<GameObjectEffect> {
+        let result = match self {
+            GameObject::Asteroid(asteroid) => vec![],
+            GameObject::StarBase(star_base) => star_base.update(time),
+            GameObject::Spacecraft(spacecraft) => spacecraft.update(time),
+            GameObject::Projectile(projectile) => projectile.update(time)
+        };
+        self.body_mut().update_fixed(time);
+        result
+    }
 }
 
 pub enum GameObjectEffect {
@@ -119,7 +122,7 @@ pub enum GameObjectEffect {
     SpawnSpacecraft(Spacecraft),
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, Default, Copy, PartialEq)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default, PartialEq)]
 pub struct GameObjectBody {
     pub position: Vec2,
     pub velocity: Vec2,
@@ -128,10 +131,12 @@ pub struct GameObjectBody {
     pub cur_time: f32,
     pub acceleration: Vec2,
     pub angular_acceleration: f32,
+    pub bounds: Vec<Vec2>,
+    pub updated: usize
 }
 
 impl GameObjectBody {
-    pub fn new(position: Vec2, velocity: Vec2, rotation: f32, cur_time: f32) -> Self {
+    pub fn new(position: Vec2, velocity: Vec2, rotation: f32, cur_time: f32, bounds: Vec<Vec2>) -> Self {
         Self {
             position,
             velocity,
@@ -140,6 +145,8 @@ impl GameObjectBody {
             acceleration: Vec2::ZERO,
             angular_acceleration: 0.,
             cur_time,
+            bounds,
+            updated: 0
         }
     }
     pub fn from_position(position: Vec2) -> Self {
@@ -165,9 +172,28 @@ impl GameObjectBody {
         self.angular_acceleration = 0.;
         self.acceleration = Vec2::ZERO;
         self.cur_time = time;
+        self.updated += 1;
+    }
+    pub fn update_fixed(&mut self, time: f32) {
+        assert!(time >= self.cur_time);
+
+        let dt = time - self.cur_time;
+
+        self.position += self.velocity * dt;
+        self.velocity += self.acceleration * dt;
+
+        self.angular_velocity += self.angular_acceleration * dt;
+
+        self.angular_acceleration = 0.;
+        self.acceleration = Vec2::ZERO;
+        self.cur_time = time;
+        self.updated += 1;
     }
     pub fn relative_to_world(&self, relative_pos: Vec2) -> Vec2 {
         relative_pos.rotate_rad(self.rotation) + self.position
+    }
+    pub fn point_position(&self, index: usize) -> Vec2 {
+        self.relative_to_world(self.bounds[index])
     }
 }
 

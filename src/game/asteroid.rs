@@ -7,39 +7,31 @@ pub struct Asteroid {
     pub radius: f32,
     health: f32,
     pub material: Material,
-    pub updated: usize,
 }
 
 impl Asteroid {
-    pub fn new(transform: GameObjectBody, radius: f32, material: Material) -> Self {
+    pub fn new(pos: Vec2, vel: Vec2, time: f32, radius: f32, material: Material) -> Self {
+        let body = GameObjectBody::new(pos, vel, 0., time, vec![
+                vec2(radius, radius),
+                vec2(-radius, radius),
+                vec2(-radius, -radius),
+                vec2(radius, -radius),
+            ]
+        );
         Self {
-            body: transform,
+            body,
             radius,
             health: material.health_per_area() * radius * radius * std::f32::consts::PI,
             material,
-            updated: 0,
         }
     }
     pub fn mass(&self) -> f32 {
         self.radius * self.radius * std::f32::consts::PI * self.material.density()
     }
-    pub fn bounds(&self) -> Vec<Vec2> {
-        vec![
-            vec2(self.radius, self.radius),
-            vec2(-self.radius, self.radius),
-            vec2(-self.radius, -self.radius),
-            vec2(self.radius, -self.radius),
-        ]
-    }
+
 }
 
 impl Asteroid {
-    pub fn transform_mut(&mut self) -> &mut GameObjectBody {
-        &mut self.body
-    }
-    pub fn transform(&self) -> &GameObjectBody {
-        &self.body
-    }
     pub fn destroyed(&self) -> bool {
         self.health <= 0.
     }
