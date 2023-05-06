@@ -317,6 +317,10 @@ impl Game {
             return false;
         }
 
+        if col.time ==  self.game_objects.get(&sharp_obj_id).unwrap().body().cur_time {
+            return false;
+        }
+
         self.game_objects.get_mut(&sharp_obj_id).unwrap().update_fixed(col.time);
         self.game_objects.get_mut(&other_obj_id).unwrap().update_fixed(col.time);
 
