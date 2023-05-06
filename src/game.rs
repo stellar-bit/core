@@ -283,8 +283,10 @@ impl Game {
         }
 
         while let Some(Reverse(col)) = collisions_pq.pop() {
+            println!("-----------------------------------------------------");
             println!("{:?}", col);
             println!("{:?} {:?}", self.game_objects.get(&col.sharp_obj.0).unwrap(), self.game_objects.get(&col.other_obj.0).unwrap());
+            println!("-----------------------------------------------------");
             if  self.handle_collision(col) {
                 for &other_id in &game_object_ids {
                     if other_id != col.sharp_obj.0 {
