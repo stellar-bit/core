@@ -339,12 +339,12 @@ impl Game {
         let impulse = impulse_numerator/impulse_denominator;
 
         let sharp_obj = self.game_objects.get_mut(&sharp_obj_id).unwrap().body_mut();
-        sharp_obj.velocity += impulse * normal / mass1;
+        sharp_obj.velocity -= impulse * normal / mass1;
         sharp_obj.update_fixed(col.time+MIN_UPDATE_TIME);
 
         let other_obj = self.game_objects.get_mut(&other_obj_id).unwrap();
 
-        other_obj.body_mut().velocity -= impulse * normal / mass1;
+        other_obj.body_mut().velocity += impulse * normal / mass2;
         other_obj.update_fixed(col.time+MIN_UPDATE_TIME);
 
         true
