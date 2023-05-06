@@ -156,7 +156,7 @@ impl GameObjectBody {
         }
     }
     pub fn update(&mut self, time: f32) {
-        assert!(time >= self.cur_time);
+        assert!(time > self.cur_time);
 
         let dt = time - self.cur_time;
 
@@ -175,7 +175,7 @@ impl GameObjectBody {
         self.updated += 1;
     }
     pub fn update_fixed(&mut self, time: f32) {
-        assert!(time >= self.cur_time);
+        assert!(time > self.cur_time);
 
         let dt = time - self.cur_time;
 
