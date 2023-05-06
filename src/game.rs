@@ -359,7 +359,7 @@ impl Game {
         other_body.velocity = Vec2::ZERO;
 
         let sharp_points = sharp_body.bounds.clone().into_iter().map(|x| sharp_body.relative_to_world(x)).collect();
-        let other_points = other_body.bounds.clone().into_iter().map(|x| sharp_body.relative_to_world(x)).collect();
+        let other_points = other_body.bounds.clone().into_iter().map(|x| other_body.relative_to_world(x)).collect();
 
         check_sharp_collision(sharp_points, other_points, sharp_body.velocity, self.time_elapsed-cur_time).map(|(dt, sharp_point, other_line)| {
             CollisionInfo {
