@@ -51,6 +51,7 @@ pub fn sat_collision_detect(convex_hull1: &Vec<Vec2>, convex_hull2: &Vec<Vec2>) 
 }
 
 /// Checks whether obj 1 collides with obj 2 with one of its corners
+/// Don't give me vertical lines pls or I'll do some weird stuff
 pub fn check_sharp_collision(
     sharp_points: Vec<Vec2>,
     other_points: Vec<Vec2>,
