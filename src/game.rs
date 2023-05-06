@@ -344,7 +344,7 @@ impl Game {
         let impulse = impulse_numerator/impulse_denominator;
 
         let destructive_power = sharp_obj.destructive_power() * other_obj.destructive_power();
-        let damage = (1.-bounciness) * relative_velocity.dot(normal).abs().powi(2) * (mass1+mass2) * destructive_power;
+        let damage = (1.-bounciness) * relative_velocity.dot(normal).abs().powi(2) * destructive_power;
 
         let sharp_obj_owner = sharp_obj.owner();
         let other_obj_owner = other_obj.owner();
@@ -353,7 +353,7 @@ impl Game {
         sharp_obj.body_mut().velocity -= impulse * normal / mass1;
         sharp_obj.update_fixed(col.time+MIN_UPDATE_TIME);
 
-        let material_gain = sharp_obj.apply_damage(damage, point_of_collision);
+        let material_gain = sharp_obj.apply_damage(damage*mass2, point_of_collision);
         if let Some(player_id) = other_obj_owner {
             let player = self.players.get_mut(&player_id).unwrap();
             player.give_materials(material_gain);
@@ -364,7 +364,7 @@ impl Game {
         other_obj.body_mut().velocity += impulse * normal / mass2;
         other_obj.update_fixed(col.time+MIN_UPDATE_TIME);
 
-        let material_gain = other_obj.apply_damage(damage, point_of_collision);
+        let material_gain = other_obj.apply_damage(damage*mass1, point_of_collision);
         if let Some(player_id) = sharp_obj_owner {
             let player = self.players.get_mut(&player_id).unwrap();
             player.give_materials(material_gain);

@@ -21,7 +21,7 @@ impl Asteroid {
         Self {
             body,
             radius,
-            health: material.health_per_area() * radius * radius * std::f32::consts::PI,
+            health: material.health_per_area() * radius * radius * std::f32::consts::PI*40.,
             material,
         }
     }
