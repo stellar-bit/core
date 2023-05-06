@@ -263,37 +263,38 @@ impl Game {
         
         // -------------------COLLISIONS------------------- //
 
-        // let mut collisions_pq = BinaryHeap::new();
+        let mut collisions_pq = BinaryHeap::new();
 
-        // macro_rules! add_collisions {
-        //     ($obj_1_id:expr, $obj_2_id:expr) => {
-        //         if let Some(collision) = self.check_sharp_object_collision($obj_1_id, $obj_2_id) {
-        //             collisions_pq.push(Reverse(collision));
-        //         }
-        //         if let Some(collision) = self.check_sharp_object_collision($obj_2_id, $obj_1_id) {
-        //             collisions_pq.push(Reverse(collision));
-        //         }
-        //     };
-        // }
+        macro_rules! add_collisions {
+            ($obj_1_id:expr, $obj_2_id:expr) => {
+                if let Some(collision) = self.check_sharp_object_collision($obj_1_id, $obj_2_id) {
+                    collisions_pq.push(Reverse(collision));
+                }
+                if let Some(collision) = self.check_sharp_object_collision($obj_2_id, $obj_1_id) {
+                    collisions_pq.push(Reverse(collision));
+                }
+            };
+        }
 
-        // for i in 0..game_object_ids.len() {
-        //     for j in i+1..game_object_ids.len() {
-        //         add_collisions!(game_object_ids[i], game_object_ids[j]);
-        //     }
-        // }
+        for i in 0..game_object_ids.len() {
+            for j in i+1..game_object_ids.len() {
+                add_collisions!(game_object_ids[i], game_object_ids[j]);
+            }
+        }
 
-        // while let Some(Reverse(col)) = collisions_pq.pop() {
-        //     if  self.handle_collision(col) {
-        //         for &other_id in &game_object_ids {
-        //             if other_id != col.sharp_obj.0 {
-        //                 add_collisions!(col.sharp_obj.0, other_id);
-        //             }
-        //             if other_id != col.other_obj.0 {
-        //                 add_collisions!(col.other_obj.0, other_id);
-        //             }
-        //         }
-        //     }
-        // }
+        while let Some(Reverse(col)) = collisions_pq.pop() {
+            println!("{:?}", col);
+            if  self.handle_collision(col) {
+                for &other_id in &game_object_ids {
+                    if other_id != col.sharp_obj.0 {
+                        add_collisions!(col.sharp_obj.0, other_id);
+                    }
+                    if other_id != col.other_obj.0 {
+                        add_collisions!(col.other_obj.0, other_id);
+                    }
+                }
+            }
+        }
         // -------------------END COLLISIONS------------------- //
 
         for (destroyed, destroyer) in destroyed_game_objects {
