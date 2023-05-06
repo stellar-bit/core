@@ -100,8 +100,6 @@ impl Spacecraft {
             .into_iter()
             .for_each(|x| self.apply_force_local(x.0, x.1));
 
-        self.body.update(time);
-
         result
     }
     pub fn reconstruct(&mut self) {
