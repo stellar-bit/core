@@ -328,24 +328,47 @@ impl Game {
         let other_obj = self.game_objects.get(&other_obj_id).unwrap();
 
         let col_line = (other_obj.body().point_position(other_obj_line), other_obj.body().point_position((other_obj_line+1)%other_obj.body().bounds.len()));
+        let point_of_collision = sharp_obj.body().point_position(sharp_obj_point);
 
         let normal = (col_line.0-col_line.1).perp().normalize();
 
         let mass1 = sharp_obj.mass();
         let mass2 = other_obj.mass();
 
-        let impulse_numerator = -2. * (other_obj.body().velocity-sharp_obj.body().velocity).dot(normal);
+        let bounciness = sharp_obj.bounciness() * other_obj.bounciness();
+
+        let relative_velocity = other_obj.body().velocity-sharp_obj.body().velocity;
+
+        let impulse_numerator = -(1.+bounciness) * (relative_velocity).dot(normal);
         let impulse_denominator = (1./mass1) + (1./mass2);
         let impulse = impulse_numerator/impulse_denominator;
 
-        let sharp_obj = self.game_objects.get_mut(&sharp_obj_id).unwrap().body_mut();
-        sharp_obj.velocity -= impulse * normal / mass1;
+        let destructive_power = sharp_obj.destructive_power() * other_obj.destructive_power();
+        let damage = (1.-bounciness) * relative_velocity.dot(normal).abs().powi(2) * (mass1+mass2) * destructive_power;
+
+        let sharp_obj_owner = sharp_obj.owner();
+        let other_obj_owner = other_obj.owner();
+
+        let sharp_obj = self.game_objects.get_mut(&sharp_obj_id).unwrap();
+        sharp_obj.body_mut().velocity -= impulse * normal / mass1;
         sharp_obj.update_fixed(col.time+MIN_UPDATE_TIME);
+
+        let material_gain = sharp_obj.apply_damage(damage, point_of_collision);
+        if let Some(player_id) = other_obj_owner {
+            let player = self.players.get_mut(&player_id).unwrap();
+            player.give_materials(material_gain);
+        }
 
         let other_obj = self.game_objects.get_mut(&other_obj_id).unwrap();
 
         other_obj.body_mut().velocity += impulse * normal / mass2;
         other_obj.update_fixed(col.time+MIN_UPDATE_TIME);
+
+        let material_gain = other_obj.apply_damage(damage, point_of_collision);
+        if let Some(player_id) = sharp_obj_owner {
+            let player = self.players.get_mut(&player_id).unwrap();
+            player.give_materials(material_gain);
+        }
 
         true
     }

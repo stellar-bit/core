@@ -66,6 +66,14 @@ impl GameObject {
             GameObject::Projectile(projectile) => projectile.health(),
         }
     }
+    pub fn bounciness(&self) -> f32 {
+        match self {
+            GameObject::Asteroid(asteroid) => 0.5,
+            GameObject::StarBase(star_base) => 0.7,
+            GameObject::Spacecraft(spacecraft) => 0.4,
+            GameObject::Projectile(projectile) => 0.01,
+        }
+    }
     pub fn destructive_power(&self) -> f32 {
         match self {
             GameObject::Projectile(projectile) => projectile.destructive_power(),

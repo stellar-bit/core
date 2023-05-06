@@ -41,4 +41,9 @@ impl Player {
             .iter()
             .all(|(material, amount)| self.materials.get(material).unwrap_or(&0.) >= amount)
     }
+    pub fn give_materials(&mut self, materials: Vec<(Material, f32)>) {
+        for (material, amount) in materials {
+            *self.materials.entry(material).or_default() += amount;
+        }
+    }
 }
