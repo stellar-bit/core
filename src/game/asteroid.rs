@@ -11,7 +11,7 @@ pub struct Asteroid {
 
 impl Asteroid {
     pub fn new(pos: Vec2, vel: Vec2, time: f32, radius: f32, material: Material) -> Self {
-        let body = GameObjectBody::new(pos, vel, 0., time, vec![
+        let body = GameObjectBody::new(pos, vel, rand::random::<f32>()*PI*2., time, vec![
                 vec2(radius, radius),
                 vec2(-radius, radius),
                 vec2(-radius, -radius),
