@@ -98,7 +98,7 @@ impl Spacecraft {
 
         forces
             .into_iter()
-            .for_each(|x| self.apply_force_local(x.0, x.1, time-self.body.cur_time));
+            .for_each(|x| self.apply_force_local(x.0, x.1));
 
         self.body.update(time);
 
@@ -186,11 +186,11 @@ impl Spacecraft {
             .sum()
     }
     /// Applies a force in a local coordinate system
-    fn apply_force_local(&mut self, origin: Vec2, direction: Vec2, dt: f32) {
+    fn apply_force_local(&mut self, origin: Vec2, direction: Vec2) {
         self.body.acceleration +=
-            direction.rotate(Vec2::from_angle(self.body.rotation)) / self.compute_mass() / dt;
+            direction.rotate(Vec2::from_angle(self.body.rotation)) / self.compute_mass();
         self.body.angular_acceleration +=
-            (origin - self.center_of_mass).perp_dot(direction / dt) / self.inertia;
+            (origin - self.center_of_mass).perp_dot(direction) / self.inertia;
     }
     fn center_of_mass(&self) -> Vec2 {
         let mut result = Vec2::ZERO;

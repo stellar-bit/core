@@ -230,9 +230,8 @@ impl Game {
                 self.players.insert(player_id, Player::new());
                 self.game_objects
                     .insert_with_unique_key(GameObject::StarBase(StarBase::new(
-                        GameObjectBody::from_position(
-                            Vec2::random_direction() * 1000. * rand::random::<f32>().sqrt(),
-                        ),
+                        Vec2::random_direction() * 1000. * rand::random::<f32>().sqrt(),
+                        self.time_elapsed,
                         player_id,
                     )));
             }
