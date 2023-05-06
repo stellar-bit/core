@@ -30,6 +30,8 @@ pub use spacecraft_structure::{ComponentPlaceholder, SpacecraftStructure};
 
 use self::collision_detection::{CollisionInfo, check_sharp_collision};
 
+const MIN_UPDATE_TIME: f32 = 0.001;
+
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct GameSync {
     pub last_update: Duration,
@@ -99,7 +101,7 @@ impl Game {
 
         let mut effects = vec![];
         for game_object in self.game_objects.values_mut() {
-            effects.extend(game_object.update(self.time_elapsed));
+            effects.extend(game_object.update(self.time_elapsed+MIN_UPDATE_TIME));
         }
 
         for effect in effects {
@@ -331,12 +333,12 @@ impl Game {
 
         let sharp_obj = self.game_objects.get_mut(&sharp_obj_id).unwrap().body_mut();
         sharp_obj.velocity -= impulse * normal / mass1;
-        sharp_obj.update_fixed(col.time+0.001);
+        sharp_obj.update_fixed(col.time+MIN_UPDATE_TIME);
 
         let other_obj = self.game_objects.get_mut(&other_obj_id).unwrap();
 
         other_obj.body_mut().velocity += impulse * normal / mass1;
-        other_obj.update_fixed(col.time+0.001);
+        other_obj.update_fixed(col.time+MIN_UPDATE_TIME);
 
         true
     }
