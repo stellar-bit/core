@@ -267,11 +267,15 @@ impl Game {
 
         macro_rules! add_collisions {
             ($obj_1_id:expr, $obj_2_id:expr) => {
-                if let Some(collision) = self.check_sharp_object_collision($obj_1_id, $obj_2_id) {
-                    collisions_pq.push(Reverse(collision));
-                }
-                if let Some(collision) = self.check_sharp_object_collision($obj_2_id, $obj_1_id) {
-                    collisions_pq.push(Reverse(collision));
+                let owner1 = self.game_objects[&$obj_1_id].owner();
+                let owner2 = self.game_objects[&$obj_2_id].owner();
+                if owner1.is_none() || owner1 != owner2 {
+                    if let Some(collision) = self.check_sharp_object_collision($obj_1_id, $obj_2_id) {
+                        collisions_pq.push(Reverse(collision));
+                    }
+                    if let Some(collision) = self.check_sharp_object_collision($obj_2_id, $obj_1_id) {
+                        collisions_pq.push(Reverse(collision));
+                    }
                 }
             };
         }
