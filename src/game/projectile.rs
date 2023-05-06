@@ -61,9 +61,9 @@ pub enum ProjectileType {
 impl ProjectileType {
     pub fn construct(&self, position: Vec2, velocity: Vec2, rotation: f32, time: f32, owner: PlayerToken) -> Projectile {
         let (health, mass, scale, lifetime, destructive_power) = match &self {
-            ProjectileType::Bullet => (50., 3., vec2(0.5, 0.2), 5., 2.),
-            ProjectileType::Missile => (500., 10., vec2(0.3, 0.3), 20., 3.),
-            ProjectileType::Laser => (80., 1., vec2(0.5, 0.1), 3., 1.),
+            ProjectileType::Bullet => (50., 0.3, vec2(0.5, 0.2), 5., 2.),
+            ProjectileType::Missile => (500., 1., vec2(0.3, 0.3), 20., 3.),
+            ProjectileType::Laser => (80., 0.1, vec2(0.5, 0.1), 3., 1.),
         };
 
         let bounds = vec![
