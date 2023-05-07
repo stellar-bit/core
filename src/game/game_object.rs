@@ -68,7 +68,7 @@ impl GameObject {
     }
     pub fn bounciness(&self) -> f32 {
         match self {
-            GameObject::Asteroid(asteroid) => 0.5,
+            GameObject::Asteroid(asteroid) => 0.9,
             GameObject::StarBase(star_base) => 0.7,
             GameObject::Spacecraft(spacecraft) => 0.4,
             GameObject::Projectile(projectile) => 0.01,
