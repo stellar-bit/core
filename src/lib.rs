@@ -44,7 +44,7 @@ pub mod prelude {
 
     pub use game::{
         collision_detection::convex_hull, Asteroid, Component, ComponentCmd, ComponentId,
-        ComponentPlaceholder, ComponentType, ComponentWrapper, Game, GameCmd, GameEvent,
+        ComponentPlaceholder, ComponentType, Game, GameCmd, GameEvent,
         GameObject, GameObjectBody, GameObjectId, Material, Orientation, Player, PlayerToken,
         Projectile, ProjectileType, Spacecraft, SpacecraftStructure, StarBase, User, GameObjectEffect
     };

@@ -13,25 +13,25 @@ impl Block {
     }
 }
 
-impl ComponentWrapper for Block {
-    fn body(&self) -> &ComponentBody {
+impl Block {
+    pub fn body(&self) -> &ComponentBody {
         &self.body
     }
-    fn update(&mut self, _time: f32) -> Vec<ComponentEffect> {
+    pub fn update(&mut self, _time: f32) -> Vec<ComponentEffect> {
         vec![]
     }
-    fn mass(&self) -> f32 {
+    pub fn mass(&self) -> f32 {
         self.mass
     }
-    fn health(&self) -> f32 {
+    pub fn health(&self) -> f32 {
         self.health
     }
-    fn handle_cmd(&mut self, cmd: ComponentCmd) {
+    pub fn handle_cmd(&mut self, cmd: ComponentCmd) {
         if let ComponentCmd::SelfDestruct = cmd {
             self.health = 0.;
         }
     }
-    fn apply_damage(&mut self, damage: f32) {
+    pub fn apply_damage(&mut self, damage: f32) {
         self.health -= damage;
     }
 }

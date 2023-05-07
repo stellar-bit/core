@@ -42,11 +42,11 @@ impl Weapon {
     }
 }
 
-impl ComponentWrapper for Weapon {
-    fn body(&self) -> &ComponentBody {
+impl Weapon {
+    pub fn body(&self) -> &ComponentBody {
         &self.body
     }
-    fn update(&mut self, time: f32) -> Vec<ComponentEffect> {
+    pub fn update(&mut self, time: f32) -> Vec<ComponentEffect> {
         let dt = time - self.body.cur_time;
         
         let mut effects = vec![];
@@ -68,13 +68,13 @@ impl ComponentWrapper for Weapon {
 
         effects
     }
-    fn mass(&self) -> f32 {
+    pub fn mass(&self) -> f32 {
         self.mass
     }
-    fn health(&self) -> f32 {
+    pub fn health(&self) -> f32 {
         self.health
     }
-    fn handle_cmd(&mut self, cmd: ComponentCmd) {
+    pub fn handle_cmd(&mut self, cmd: ComponentCmd) {
         match cmd {
             ComponentCmd::SetRotation(rotation) => {
                 let rotation = normalize_radians(rotation);
@@ -89,7 +89,7 @@ impl ComponentWrapper for Weapon {
             _ => {}
         }
     }
-    fn apply_damage(&mut self, damage: f32) {
+    pub fn apply_damage(&mut self, damage: f32) {
         self.health -= damage;
     }
 }

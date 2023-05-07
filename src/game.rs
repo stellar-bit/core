@@ -15,7 +15,7 @@ pub use material::Material;
 pub use player::{Player, PlayerToken};
 pub use spacecraft::Spacecraft;
 pub use spacecraft::{
-    Component, ComponentCmd, ComponentId, ComponentType, ComponentWrapper, Orientation,
+    Component, ComponentCmd, ComponentId, ComponentType, Orientation,
 };
 pub use star_base::{StarBase};
 pub use {projectile::Projectile, projectile::ProjectileType};

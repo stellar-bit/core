@@ -39,12 +39,12 @@ impl Engine {
     }
 }
 
-impl ComponentWrapper for Engine {
-    fn body(&self) -> &ComponentBody {
+impl Engine {
+    pub fn body(&self) -> &ComponentBody {
         &self.body
     }
 
-    fn update(&mut self, time: f32) -> Vec<ComponentEffect> {
+    pub fn update(&mut self, time: f32) -> Vec<ComponentEffect> {
         let mut result = vec![];
         let dt = time-self.body.cur_time;
         if self.active && self.fuel > 0. {
@@ -57,13 +57,13 @@ impl ComponentWrapper for Engine {
         }
         result
     }
-    fn mass(&self) -> f32 {
+    pub fn mass(&self) -> f32 {
         self.fuel * self.fuel_density
     }
-    fn health(&self) -> f32 {
+    pub fn health(&self) -> f32 {
         self.health
     }
-    fn handle_cmd(&mut self, cmd: ComponentCmd) {
+    pub fn handle_cmd(&mut self, cmd: ComponentCmd) {
         match cmd {
             ComponentCmd::SetPower(power) => {
                 self.power = power.min(1.).max(0.);
@@ -80,7 +80,7 @@ impl ComponentWrapper for Engine {
             }
         }
     }
-    fn apply_damage(&mut self, damage: f32) {
+    pub fn apply_damage(&mut self, damage: f32) {
         self.health -= damage;
     }
 }

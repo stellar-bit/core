@@ -21,15 +21,6 @@ pub enum ComponentCmd {
 
 pub type ComponentId = u16;
 
-pub trait ComponentWrapper {
-    fn body(&self) -> &ComponentBody;
-    fn update(&mut self, time: f32) -> Vec<ComponentEffect>;
-    fn mass(&self) -> f32;
-    fn health(&self) -> f32;
-    fn handle_cmd(&mut self, _: ComponentCmd) {}
-    fn apply_damage(&mut self, damage: f32);
-}
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 // #[serde(tag = "type")]
 pub enum Component {
