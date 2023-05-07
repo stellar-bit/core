@@ -8,8 +8,8 @@ pub struct Weapon {
     pub projectile_speed: f32,
     projectile_type: ProjectileType,
     pub body: ComponentBody,
-    health: f32,
-    mass: f32,
+    pub health: f32,
+    pub mass: f32,
     launch_point: Vec2,
     pub active: bool,
     max_angle: f32,
@@ -67,12 +67,6 @@ impl Weapon {
         }
 
         effects
-    }
-    pub fn mass(&self) -> f32 {
-        self.mass
-    }
-    pub fn health(&self) -> f32 {
-        self.health
     }
     pub fn handle_cmd(&mut self, cmd: ComponentCmd) {
         match cmd {

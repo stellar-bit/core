@@ -57,14 +57,14 @@ impl Component {
         match self {
             Component::Block(block) => block.mass(),
             Component::Engine(engine) => engine.mass(),
-            Component::Weapon(weapon) => weapon.mass(),
+            Component::Weapon(weapon) => weapon.mass,
         }
     }
     pub fn health(&self) -> f32 {
         match self {
             Component::Block(block) => block.health(),
             Component::Engine(engine) => engine.health(),
-            Component::Weapon(weapon) => weapon.health(),
+            Component::Weapon(weapon) => weapon.health,
         }
     }
     pub fn handle_cmd(&mut self, cmd: ComponentCmd) {
