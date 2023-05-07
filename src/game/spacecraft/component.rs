@@ -210,11 +210,11 @@ impl ComponentType {
     }
     pub fn health(&self) -> f32 {
         match &self {
-            ComponentType::Central => 20000.,
-            ComponentType::SteelBlock => 10000.,
-            ComponentType::RaptorEngine => 15000.,
-            ComponentType::LaserWeapon => 5000.,
-            ComponentType::MissileLauncher => 10000.,
+            ComponentType::Central => 2000.,
+            ComponentType::SteelBlock => 1000.,
+            ComponentType::RaptorEngine => 1500.,
+            ComponentType::LaserWeapon => 500.,
+            ComponentType::MissileLauncher => 1000.,
         }
     }
     pub fn scale(&self) -> UVec2 {

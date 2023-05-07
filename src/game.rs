@@ -351,7 +351,7 @@ impl Game {
 
         let sharp_obj = self.game_objects.get_mut(&sharp_obj_id).unwrap();
         sharp_obj.body_mut().velocity -= impulse * normal / mass1;
-        sharp_obj.update_fixed(col.time+MIN_UPDATE_TIME);
+        sharp_obj.body_mut().position += normal*0.05;
 
         let material_gain = sharp_obj.apply_damage(damage*mass2, point_of_collision);
         if let Some(player_id) = other_obj_owner {
@@ -362,7 +362,7 @@ impl Game {
         let other_obj = self.game_objects.get_mut(&other_obj_id).unwrap();
 
         other_obj.body_mut().velocity += impulse * normal / mass2;
-        other_obj.update_fixed(col.time+MIN_UPDATE_TIME);
+        other_obj.body_mut().position -= normal*0.05;
 
         let material_gain = other_obj.apply_damage(damage*mass1, point_of_collision);
         if let Some(player_id) = sharp_obj_owner {
