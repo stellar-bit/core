@@ -318,6 +318,7 @@ impl Game {
 
             for other_bound in bounds_left_bt.range(x_range.clone()).chain(bounds_right_bt.range(x_range)) {
                 add_sharp_collision!(*id, other_bound.2);
+                add_sharp_collision!(other_bound.2, *id);
             }
         });
 
