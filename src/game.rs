@@ -314,8 +314,6 @@ impl Game {
         let id_map = game_object_ids.iter().enumerate().map(|(i, id)| (*id, i)).collect::<HashMap<_, _>>();
 
         game_object_ids.iter().enumerate().for_each(|(i, id)| {
-            let mut candidates = vec![];
-
             let x_range = x_bounds[i]..XBound(x_bounds[i].1, 0., 0);
 
             for other_bound in bounds_left_bt.range(x_range.clone()).chain(bounds_right_bt.range(x_range)) {
