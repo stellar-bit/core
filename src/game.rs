@@ -301,7 +301,7 @@ impl Game {
 
                     xs.extend(go.body().bounds.clone().into_iter().map(|p| go.body().relative_to_world(p).x));
 
-                    (*xs.iter().min_by(|a, b| a.partial_cmp(b).unwrap()).unwrap(), *xs.iter().max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap())
+                    (*xs.iter().min_by(|a, b| a.partial_cmp(b).unwrap()).unwrap_or(&0.), *xs.iter().max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap_or(&0.))
                 }
             }
         }
