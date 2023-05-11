@@ -95,7 +95,7 @@ impl Game {
 
     fn update_game_objects(&mut self) {
         self.game_objects
-            .drain_filter(|_, game_object| game_object.health() <= 0.0);
+            .drain_filter(|_, game_object| game_object.health() <= 0.);
 
         let mut effects = vec![];
         for game_object in self.game_objects.values_mut() {
@@ -292,7 +292,9 @@ impl Game {
                     let mut go = self.game_objects[$id].clone();
                     let mut xs = go.body().bounds.clone().into_iter().map(|p| go.body().relative_to_world(p).x).collect::<Vec<_>>();
 
-                    go.update_fixed(self.time_elapsed);
+                    for eff in go.update_fixed(self.time_elapsed) {
+                        self.handle_game_object_effect(eff);
+                    }
 
                     xs.extend(go.body().bounds.clone().into_iter().map(|p| go.body().relative_to_world(p).x));
 
@@ -367,13 +369,12 @@ impl Game {
         if sharp_obj_stamp != self.game_objects[&sharp_obj_id].body().updated || other_obj_stamp != self.game_objects[&other_obj_id].body().updated || self.game_objects[&sharp_obj_id].health() <= 0. || self.game_objects[&other_obj_id].health() <= 0. {
             return false;
         }
-
-        if col.time == self.game_objects.get(&sharp_obj_id).unwrap().body().cur_time || col.time == self.game_objects.get(&other_obj_id).unwrap().body().cur_time {
-            return false;
+        for eff in self.game_objects.get_mut(&sharp_obj_id).unwrap().update_fixed(col.time) {
+            self.handle_game_object_effect(eff);
         }
-
-        self.game_objects.get_mut(&sharp_obj_id).unwrap().update_fixed(col.time);
-        self.game_objects.get_mut(&other_obj_id).unwrap().update_fixed(col.time);
+        for eff in self.game_objects.get_mut(&other_obj_id).unwrap().update_fixed(col.time) {
+            self.handle_game_object_effect(eff);
+        }
 
         let sharp_obj = self.game_objects.get(&sharp_obj_id).unwrap();
         let other_obj = self.game_objects.get(&other_obj_id).unwrap();
