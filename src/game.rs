@@ -366,7 +366,7 @@ impl Game {
             return false;
         }
 
-        if col.time ==  self.game_objects.get(&sharp_obj_id).unwrap().body().cur_time {
+        if col.time == self.game_objects.get(&sharp_obj_id).unwrap().body().cur_time || col.time == self.game_objects.get(&other_obj_id).unwrap().body().cur_time {
             return false;
         }
 
