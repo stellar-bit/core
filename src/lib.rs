@@ -117,6 +117,7 @@ pub mod prelude {
             Vec2::X.angle_between(self)
         }
     }
+
 }
 
 #[cfg(test)]

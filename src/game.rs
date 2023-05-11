@@ -265,36 +265,85 @@ impl Game {
 
         let mut collisions_pq = BinaryHeap::new();
 
-        macro_rules! add_collisions {
-            ($obj_1_id:expr, $obj_2_id:expr) => {
-                let owner1 = self.game_objects[&$obj_1_id].owner();
-                let owner2 = self.game_objects[&$obj_2_id].owner();
+        macro_rules! add_sharp_collision {
+            ($sharp_id:expr, $other_id:expr) => {
+                let owner1 = self.game_objects[&$sharp_id].owner();
+                let owner2 = self.game_objects[&$other_id].owner();
                 if owner1.is_none() || owner1 != owner2 {
-                    if let Some(collision) = self.check_sharp_object_collision($obj_1_id, $obj_2_id) {
-                        collisions_pq.push(Reverse(collision));
-                    }
-                    if let Some(collision) = self.check_sharp_object_collision($obj_2_id, $obj_1_id) {
+                    if let Some(collision) = self.check_sharp_object_collision($sharp_id, $other_id) {
                         collisions_pq.push(Reverse(collision));
                     }
                 }
             };
         }
 
-        for i in 0..game_object_ids.len() {
-            for j in i+1..game_object_ids.len() {
-                add_collisions!(game_object_ids[i], game_object_ids[j]);
+        //---------------- x-bound check optimization --------------------
+
+        #[derive(PartialOrd, PartialEq, Copy, Clone, Default)]
+        struct XBound(f32, f32, GameObjectId);
+        impl Eq for XBound {}
+        impl Ord for XBound {
+            fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+                self.0.partial_cmp(&other.0).unwrap()
+            }
+        } 
+
+        macro_rules! compute_x_bound {
+            ($id: expr) => {
+                {
+                    let mut go = self.game_objects[$id].clone();
+                    let mut xs = go.body().bounds.clone().into_iter().map(|p| go.body().relative_to_world(p).x).collect::<Vec<_>>();
+
+                    go.update_fixed(self.time_elapsed);
+
+                    xs.extend(go.body().bounds.clone().into_iter().map(|p| go.body().relative_to_world(p).x));
+
+                    (*xs.iter().min_by(|a, b| a.partial_cmp(b).unwrap()).unwrap(), *xs.iter().max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap())
+                }
             }
         }
 
+        let x_bounds = game_object_ids.iter().map(|id| {
+            let (min, max) = compute_x_bound!(id);
+            XBound(min, max, *id)
+        }).collect::<Vec<_>>();
+
+        let mut bounds_left_bt = BTreeSet::from_iter(x_bounds.clone());
+        let mut bounds_right_bt = BTreeSet::from_iter(x_bounds.iter().map(|bound| XBound(bound.1, bound.0, bound.2)));
+
+        game_object_ids.iter().enumerate().for_each(|(i, id)| {
+            let mut candidates = vec![];
+
+            let x_range = x_bounds[i]..XBound(x_bounds[i].1, 0., 0);
+            for bound in bounds_left_bt.range(x_range.clone()).chain(bounds_right_bt.range(x_range)) {
+                candidates.push(bound.2);
+            }
+
+            for &other_id in &candidates {
+                add_sharp_collision!(*id, other_id);
+            }
+        });
+
         while let Some(Reverse(col)) = collisions_pq.pop() {
-            if  self.handle_collision(col) {
-                for &other_id in &game_object_ids {
-                    if other_id != col.sharp_obj.0 {
-                        add_collisions!(col.sharp_obj.0, other_id);
-                    }
-                    if other_id != col.other_obj.0 {
-                        add_collisions!(col.other_obj.0, other_id);
-                    }
+            if !self.handle_collision(col) {
+                continue;
+            }
+            let id_1 = col.sharp_obj.0;
+            let id_2 = col.other_obj.0;
+            if self.game_objects[&id_1].health() <= 0. {
+                destroyed_game_objects.push((id_1, id_2));
+            }
+            if self.game_objects[&id_2].health() <= 0. {
+                destroyed_game_objects.push((id_2, id_1));
+            }
+            for &other_id in &game_object_ids {
+                if other_id != col.sharp_obj.0 {
+                    add_sharp_collision!(col.sharp_obj.0, other_id);
+                    add_sharp_collision!(other_id, col.sharp_obj.0);
+                }
+                if other_id != col.other_obj.0 {
+                    add_sharp_collision!(col.other_obj.0, other_id);
+                    add_sharp_collision!(other_id, col.other_obj.0);
                 }
             }
         }
@@ -313,7 +362,7 @@ impl Game {
         let (sharp_obj_id, sharp_obj_stamp, sharp_obj_point) = col.sharp_obj;
         let (other_obj_id, other_obj_stamp, other_obj_line) = col.other_obj;
 
-        if sharp_obj_stamp != self.game_objects[&sharp_obj_id].body().updated || other_obj_stamp != self.game_objects[&other_obj_id].body().updated {
+        if sharp_obj_stamp != self.game_objects[&sharp_obj_id].body().updated || other_obj_stamp != self.game_objects[&other_obj_id].body().updated || self.game_objects[&sharp_obj_id].health() <= 0. || self.game_objects[&other_obj_id].health() <= 0. {
             return false;
         }
 

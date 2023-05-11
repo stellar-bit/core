@@ -71,7 +71,7 @@ impl GameObject {
             GameObject::Asteroid(asteroid) => 0.9,
             GameObject::StarBase(star_base) => 0.7,
             GameObject::Spacecraft(spacecraft) => 0.4,
-            GameObject::Projectile(projectile) => 0.01,
+            GameObject::Projectile(projectile) => 0.1,
         }
     }
     pub fn destructive_power(&self) -> f32 {
