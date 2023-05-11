@@ -30,8 +30,6 @@ pub use spacecraft_structure::{ComponentPlaceholder, SpacecraftStructure};
 
 use self::collision_detection::{CollisionInfo, check_sharp_collision};
 
-const MIN_UPDATE_TIME: f32 = 0.001;
-
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct GameSync {
     pub last_update: Duration,
@@ -101,7 +99,7 @@ impl Game {
 
         let mut effects = vec![];
         for game_object in self.game_objects.values_mut() {
-            effects.extend(game_object.update(self.time_elapsed+MIN_UPDATE_TIME));
+            effects.extend(game_object.update(self.time_elapsed));
         }
 
         for effect in effects {
