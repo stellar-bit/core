@@ -303,24 +303,23 @@ impl Game {
             }
         }
 
-        let x_bounds = game_object_ids.iter().map(|id| {
+        let mut x_bounds = game_object_ids.iter().map(|id| {
             let (min, max) = compute_x_bound!(id);
             XBound(min, max, *id)
         }).collect::<Vec<_>>();
 
         let mut bounds_left_bt = BTreeSet::from_iter(x_bounds.clone());
         let mut bounds_right_bt = BTreeSet::from_iter(x_bounds.iter().map(|bound| XBound(bound.1, bound.0, bound.2)));
+        
+        let id_map = game_object_ids.iter().enumerate().map(|(i, id)| (*id, i)).collect::<HashMap<_, _>>();
 
         game_object_ids.iter().enumerate().for_each(|(i, id)| {
             let mut candidates = vec![];
 
             let x_range = x_bounds[i]..XBound(x_bounds[i].1, 0., 0);
-            for bound in bounds_left_bt.range(x_range.clone()).chain(bounds_right_bt.range(x_range)) {
-                candidates.push(bound.2);
-            }
 
-            for &other_id in &candidates {
-                add_sharp_collision!(*id, other_id);
+            for other_bound in bounds_left_bt.range(x_range.clone()).chain(bounds_right_bt.range(x_range)) {
+                add_sharp_collision!(*id, other_bound.2);
             }
         });
 
@@ -328,22 +327,29 @@ impl Game {
             if !self.handle_collision(col) {
                 continue;
             }
-            let id_1 = col.sharp_obj.0;
-            let id_2 = col.other_obj.0;
-            if self.game_objects[&id_1].health() <= 0. {
-                destroyed_game_objects.push((id_1, id_2));
-            }
-            if self.game_objects[&id_2].health() <= 0. {
-                destroyed_game_objects.push((id_2, id_1));
-            }
-            for &other_id in &game_object_ids {
-                if other_id != col.sharp_obj.0 {
-                    add_sharp_collision!(col.sharp_obj.0, other_id);
-                    add_sharp_collision!(other_id, col.sharp_obj.0);
+
+            let ids = [col.sharp_obj.0, col.other_obj.0];
+            for i in 0..2 {
+                if self.game_objects[&ids[i]].health() <= 0. {
+                    destroyed_game_objects.push((ids[i], ids[(i+1)%2]));
                 }
-                if other_id != col.other_obj.0 {
-                    add_sharp_collision!(col.other_obj.0, other_id);
-                    add_sharp_collision!(other_id, col.other_obj.0);
+                let new_bound = compute_x_bound!(&ids[i]);
+                let new_bound = XBound(new_bound.0, new_bound.1, ids[i]);
+
+                let old_bound = x_bounds[id_map[&ids[i]]];
+                x_bounds[id_map[&ids[i]]] = new_bound;
+
+                bounds_left_bt.remove(&old_bound);
+                bounds_right_bt.remove(&XBound(old_bound.1, old_bound.0, old_bound.2));
+
+                bounds_left_bt.insert(new_bound);
+                bounds_right_bt.insert(XBound(new_bound.1, new_bound.0, new_bound.2));
+
+                let x_range = new_bound..XBound(new_bound.1, 0., 0);
+
+                for other_bound in bounds_left_bt.range(x_range.clone()).chain(bounds_right_bt.range(x_range)) {
+                    add_sharp_collision!(ids[i], other_bound.2);
+                    add_sharp_collision!(other_bound.2, ids[i]);
                 }
             }
         }
