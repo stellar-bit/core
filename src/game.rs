@@ -263,12 +263,15 @@ impl Game {
 
         let mut collisions_pq = BinaryHeap::new();
 
-        macro_rules! add_sharp_collision {
-            ($sharp_id:expr, $other_id:expr) => {
-                let owner1 = self.game_objects[&$sharp_id].owner();
-                let owner2 = self.game_objects[&$other_id].owner();
+        macro_rules! add_collisions {
+            ($obj_1_id:expr, $obj_2_id:expr) => {
+                let owner1 = self.game_objects[&$obj_1_id].owner();
+                let owner2 = self.game_objects[&$obj_2_id].owner();
                 if owner1.is_none() || owner1 != owner2 {
-                    if let Some(collision) = self.check_sharp_object_collision($sharp_id, $other_id) {
+                    if let Some(collision) = self.check_sharp_object_collision($obj_1_id, $obj_2_id) {
+                        collisions_pq.push(Reverse(collision));
+                    }
+                    if let Some(collision) = self.check_sharp_object_collision($obj_2_id, $obj_1_id) {
                         collisions_pq.push(Reverse(collision));
                     }
                 }
@@ -317,8 +320,7 @@ impl Game {
             let x_range = x_bounds[i]..XBound(x_bounds[i].1, 0., 0);
 
             for other_bound in bounds_left_bt.range(x_range.clone()).chain(bounds_right_bt.range(x_range)) {
-                add_sharp_collision!(*id, other_bound.2);
-                add_sharp_collision!(other_bound.2, *id);
+                add_collisions!(*id, other_bound.2);
             }
         });
 
@@ -347,8 +349,7 @@ impl Game {
                 let x_range = new_bound..XBound(new_bound.1, 0., 0);
 
                 for other_bound in bounds_left_bt.range(x_range.clone()).chain(bounds_right_bt.range(x_range)) {
-                    add_sharp_collision!(ids[i], other_bound.2);
-                    add_sharp_collision!(other_bound.2, ids[i]);
+                    add_collisions!(ids[i], other_bound.2);
                 }
             }
         }
