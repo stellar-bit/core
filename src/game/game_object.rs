@@ -117,6 +117,9 @@ impl GameObject {
     }
     /// Less accurate update but can be used during collisions
     pub fn update_fixed(&mut self, time: f32) -> Vec<GameObjectEffect> {
+        if time-self.body().cur_time == 0. {
+            return vec![];
+        }
         let result = match self {
             GameObject::Asteroid(asteroid) => vec![],
             GameObject::StarBase(star_base) => star_base.update(time),
