@@ -13,6 +13,8 @@ pub use asteroid::Asteroid;
 pub use game_object::*;
 pub use material::Material;
 pub use player::{Player, PlayerToken};
+use rand::{SeedableRng, Rng};
+use rand_chacha::ChaChaRng;
 pub use spacecraft::Spacecraft;
 pub use spacecraft::{
     Component, ComponentCmd, ComponentId, ComponentType, Orientation,
@@ -36,16 +38,13 @@ pub struct GameSync {
     pub frame: usize,
 }
 
-impl Default for GameSync {
-    fn default() -> Self {
+impl GameSync {
+    pub fn new() -> Self {
         Self {
             last_update: now(),
             frame: 0,
         }
     }
-}
-
-impl GameSync {
     pub fn update(&mut self) {
         self.last_update = now();
         self.frame += 1;
@@ -66,7 +65,7 @@ pub enum GameEvent {
     GameObjectDestroyed(GameObject, GameObject),
 }
 
-#[derive(Default, Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Game {
     pub sync: GameSync,
     pub players: HashMap<PlayerToken, Player>, // public keys as public keys
@@ -76,11 +75,20 @@ pub struct Game {
     #[serde(skip)]
     pub events: Vec<GameEvent>,
     pub time_elapsed: f32,
+    rng: ChaChaRng
 }
 
 impl Game {
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            sync: GameSync::new(),
+            players: HashMap::new(),
+            cmds_history: vec![],
+            game_objects: HashMap::new(),
+            events: vec![],
+            time_elapsed: 0.,
+            rng: ChaChaRng::from_entropy(),
+        }
     }
 
     pub fn update(&mut self, dt: f32) {
@@ -142,11 +150,11 @@ impl Game {
             GameCmd::SpawnAsteroid(pos, vel) => {
                 let new_asteroid = Asteroid::new(
                     pos, vel, self.time_elapsed,
-                    rand::random::<f32>() * 5. + 2.,
-                    rand::random(),
+                    self.rng.gen::<f32>() * 5. + 2.,
+                    self.rng.gen(),
                 );
                 self.game_objects
-                    .insert_with_unique_key(GameObject::Asteroid(new_asteroid));
+                    .insert_with_unique_key(GameObject::Asteroid(new_asteroid), &mut self.rng);
             }
             GameCmd::BuildSpacecraft(game_object_id, spacecraft_structure, hangar_index) => {
                 let Some(GameObject::StarBase(star_base)) = self.game_objects.get_mut(&game_object_id) else {
@@ -228,10 +236,10 @@ impl Game {
                 self.players.insert(player_id, Player::new());
                 self.game_objects
                     .insert_with_unique_key(GameObject::StarBase(StarBase::new(
-                        Vec2::random_direction() * 1000. * rand::random::<f32>().sqrt(),
+                        Vec2::random_direction(&mut self.rng) * 1000. * self.rng.gen::<f32>().sqrt(),
                         self.time_elapsed,
                         player_id,
-                    )));
+                    )), &mut self.rng);
             }
         }
         Ok(())
@@ -243,13 +251,13 @@ impl Game {
                 self.events
                     .push(GameEvent::ProjectileLaunched(projectile.clone()));
                 self.game_objects
-                    .insert_with_unique_key(GameObject::Projectile(projectile));
+                    .insert_with_unique_key(GameObject::Projectile(projectile), &mut self.rng);
             }
             GameObjectEffect::SpawnSpacecraft(spacecraft) => {
                 self.events
                     .push(GameEvent::SpacecraftDeployed(spacecraft.clone()));
                 self.game_objects
-                    .insert_with_unique_key(GameObject::Spacecraft(spacecraft));
+                    .insert_with_unique_key(GameObject::Spacecraft(spacecraft), &mut self.rng);
             }
         }
     }

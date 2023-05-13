@@ -12,7 +12,9 @@ pub mod prelude {
     pub use super::network;
 
     pub use bincode;
+    use rand::Rng;
     use rand::distributions::Standard;
+    use rand_chacha::ChaChaRng;
     use serde::de::DeserializeOwned;
     pub use serde_json;
     pub fn serialize_str<T: Serialize>(data: &T) -> Result<String, std::io::Error> {
@@ -78,17 +80,17 @@ pub mod prelude {
     }
 
     pub trait InsertRandomKey<K, V> {
-        fn insert_with_unique_key(&mut self, value: V) -> K;
+        fn insert_with_unique_key(&mut self, value: V, rng: &mut ChaChaRng) -> K;
     }
 
     impl<K: std::hash::Hash + std::cmp::Eq + Clone, V> InsertRandomKey<K, V> for HashMap<K, V>
     where
         Standard: rand::distributions::Distribution<K>,
     {
-        fn insert_with_unique_key(&mut self, value: V) -> K {
-            let mut key = rand::random();
+        fn insert_with_unique_key(&mut self, value: V, rng: &mut ChaChaRng) -> K {
+            let mut key = rng.gen();
             while self.contains_key(&key) {
-                key = rand::random();
+                key = rng.gen();
             }
             self.insert(key.clone(), value);
             key
@@ -98,11 +100,11 @@ pub mod prelude {
     pub trait Vec2Ext {
         fn rotate_rad(self, radians: f32) -> Self;
         fn angle(self) -> f32;
-        fn random_direction() -> Vec2 {
-            Vec2::from_angle(rand::random::<f32>() * 2.0 * PI)
+        fn random_direction(rng: &mut ChaChaRng) -> Vec2 {
+            Vec2::from_angle(rng.gen::<f32>() * 2.0 * PI)
         }
-        fn random_unit_circle() -> Vec2 {
-            Vec2::random_direction() * rand::random::<f32>().sqrt()
+        fn random_unit_circle(rng: &mut ChaChaRng) -> Vec2 {
+            Vec2::random_direction(rng) * rand::random::<f32>().sqrt()
         }
     }
 

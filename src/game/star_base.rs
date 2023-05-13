@@ -34,7 +34,7 @@ impl StarBase {
 
 impl StarBase {
     pub fn new(position: Vec2, time: f32, owner: PlayerToken) -> Self {
-        let body = GameObjectBody::new(position, Vec2::random_unit_circle(), 0., time, vec![
+        let body = GameObjectBody::new(position, Vec2::ZERO, 0., time, vec![
             vec2(10., 10.),
             vec2(-10., 10.),
             vec2(-10., -10.),
