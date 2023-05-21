@@ -19,7 +19,7 @@ impl StarBase {
     }
     pub fn apply_damage(&mut self, damage: f32, _position: Vec2) -> Vec<(Material, f32)> {
         self.health -= damage;
-        vec![(Material::Gold, damage / 5.)]
+        vec![(Material::Nickel, damage / 5.)]
     }
     pub fn health(&self) -> f32 {
         self.health

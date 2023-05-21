@@ -10,14 +10,11 @@ pub struct Player {
 impl Player {
     pub fn new() -> Self {
         let materials = vec![
-            (Material::Steel, 200.),
-            (Material::Titanium, 200.),
-            (Material::Carbon, 100.),
-            (Material::Silicon, 200.),
-            (Material::Uranium, 100.),
-            (Material::Gold, 100.),
-            (Material::Silver, 230.),
+            (Material::Iron, 200.),
+            (Material::Nickel, 200.),
+            (Material::Silicates, 200.),
             (Material::Copper, 200.),
+            (Material::Carbon, 200.),
         ]
         .into_iter()
         .collect();
