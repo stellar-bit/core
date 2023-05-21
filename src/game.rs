@@ -99,7 +99,6 @@ impl Game {
 
         let time_measure = time::Instant::now();
         self.update_collisions();
-        println!("Collisions took: {:?}", time_measure.elapsed());
         self.update_game_objects();
     }
 
