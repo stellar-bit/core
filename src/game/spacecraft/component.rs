@@ -183,7 +183,7 @@ impl ComponentType {
                 health,
                 5.,
                 ProjectileType::Laser,
-                3.,
+                100.,
                 vec2(0.48, 0.),
                 PI,
             )),
