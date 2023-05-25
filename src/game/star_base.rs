@@ -78,7 +78,7 @@ impl StarBase {
                     HangarEffect::Deploy(structure) => {
                         let mut spacecraft_transform = self.body.clone();
                         spacecraft_transform.angular_velocity = 0.;
-                        spacecraft_transform.position.y += 15.;
+                        spacecraft_transform.position.y += 25.;
 
                         result.push(GameObjectEffect::SpawnSpacecraft(Spacecraft::build(
                             structure,
