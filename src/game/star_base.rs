@@ -5,6 +5,8 @@ use crate::prelude::*;
 use glam::Vec2;
 use hangar::{Hangar, HangarEffect};
 
+const STARBASE_SIZE: f32 = 15.;
+
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct StarBase {
     pub body: GameObjectBody,
@@ -35,10 +37,10 @@ impl StarBase {
 impl StarBase {
     pub fn new(position: Vec2, time: f32, owner: PlayerToken) -> Self {
         let body = GameObjectBody::new(position, Vec2::ZERO, 0., time, vec![
-            vec2(10., 10.),
-            vec2(-10., 10.),
-            vec2(-10., -10.),
-            vec2(10., -10.),
+            vec2(STARBASE_SIZE, STARBASE_SIZE),
+            vec2(-STARBASE_SIZE, STARBASE_SIZE),
+            vec2(-STARBASE_SIZE, -STARBASE_SIZE),
+            vec2(STARBASE_SIZE, -STARBASE_SIZE),
         ]);
         Self {
             body,
@@ -88,12 +90,6 @@ impl StarBase {
             }
         }
 
-        self.body.bounds = vec![
-            vec2(10., 10.),
-            vec2(-10., 10.),
-            vec2(-10., -10.),
-            vec2(10., -10.),
-        ];
         result
     }
 }
