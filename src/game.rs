@@ -98,7 +98,7 @@ impl Game {
         self.time_elapsed += dt;
 
         let time_measure = time::Instant::now();
-        // self.update_collisions();
+        self.update_collisions();
         self.update_game_objects();
     }
 
@@ -301,14 +301,12 @@ impl Game {
         macro_rules! compute_x_bound {
             ($id: expr) => {
                 {
-                    let mut go = self.game_objects[$id].clone();
-                    let mut xs = go.body().bounds.clone().into_iter().map(|p| go.body().relative_to_world(p).x).collect::<Vec<_>>();
+                    let mut body = self.game_objects[$id].body().clone();
+                    let mut xs = body.bounds.clone().into_iter().map(|p| body.relative_to_world(p).x).collect::<Vec<_>>();
 
-                    for eff in go.update_fixed(self.time_elapsed) {
-                        self.handle_game_object_effect(eff);
-                    }
+                    body.update_fixed(self.time_elapsed);
 
-                    xs.extend(go.body().bounds.clone().into_iter().map(|p| go.body().relative_to_world(p).x));
+                    xs.extend(body.bounds.clone().into_iter().map(|p| body.relative_to_world(p).x));
 
                     (*xs.iter().min_by(|a, b| a.partial_cmp(b).unwrap()).unwrap_or(&-1.), *xs.iter().max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap_or(&0.))
                 }
