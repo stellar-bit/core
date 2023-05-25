@@ -237,7 +237,7 @@ impl Game {
                 self.players.insert(player_id, Player::new());
                 self.game_objects
                     .insert_with_unique_key(GameObject::StarBase(StarBase::new(
-                        Vec2::random_direction(&mut self.rng) * 1000. * self.rng.gen::<f32>().sqrt(),
+                        Vec2::random_direction_seed(&mut self.rng) * 1000. * self.rng.gen::<f32>().sqrt(),
                         self.time_elapsed,
                         player_id,
                     )), &mut self.rng);

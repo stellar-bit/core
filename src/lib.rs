@@ -100,11 +100,17 @@ pub mod prelude {
     pub trait Vec2Ext {
         fn rotate_rad(self, radians: f32) -> Self;
         fn angle(self) -> f32;
-        fn random_direction(rng: &mut ChaChaRng) -> Vec2 {
+        fn random_direction_seed(rng: &mut ChaChaRng) -> Vec2 {
             Vec2::from_angle(rng.gen::<f32>() * 2.0 * PI)
         }
-        fn random_unit_circle(rng: &mut ChaChaRng) -> Vec2 {
-            Vec2::random_direction(rng) * rand::random::<f32>().sqrt()
+        fn random_unit_circle_seed(rng: &mut ChaChaRng) -> Vec2 {
+            Vec2::random_direction_seed(rng) * rand::random::<f32>().sqrt()
+        }
+        fn random_direction() -> Vec2 {
+            Vec2::from_angle(rand::random::<f32>() * 2.0 * PI)
+        }
+        fn random_unit_circle() -> Vec2 {
+            Vec2::random_direction() * rand::random::<f32>().sqrt()
         }
     }
 
