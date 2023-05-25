@@ -377,7 +377,10 @@ impl Game {
         let (sharp_obj_id, sharp_obj_stamp, sharp_obj_point) = col.sharp_obj;
         let (other_obj_id, other_obj_stamp, other_obj_line) = col.other_obj;
 
-        if sharp_obj_stamp != self.game_objects[&sharp_obj_id].body().updated || other_obj_stamp != self.game_objects[&other_obj_id].body().updated || self.game_objects[&sharp_obj_id].health() <= 0. || self.game_objects[&other_obj_id].health() <= 0. {
+        if sharp_obj_stamp != self.game_objects[&sharp_obj_id].body().updated ||
+            other_obj_stamp != self.game_objects[&other_obj_id].body().updated ||
+            self.game_objects[&sharp_obj_id].health() <= 0. ||
+            self.game_objects[&other_obj_id].health() <= 0. {
             return false;
         }
         for eff in self.game_objects.get_mut(&sharp_obj_id).unwrap().update_fixed(col.time) {

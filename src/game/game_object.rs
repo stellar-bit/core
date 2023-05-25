@@ -59,6 +59,9 @@ impl GameObject {
         }
     }
     pub fn health(&self) -> f32 {
+        if self.body().bounds.len() == 0 {
+            return 0.;
+        }
         match self {
             GameObject::Asteroid(asteroid) => asteroid.health(),
             GameObject::StarBase(star_base) => star_base.health(),
