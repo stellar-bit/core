@@ -172,7 +172,7 @@ impl ComponentType {
                 body,
                 10.,
                 health,
-                200.,
+                800.,
                 50000.,
                 0.01,
                 vec2(-0.8, 0.),
