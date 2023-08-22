@@ -103,7 +103,7 @@ impl Spacecraft {
         result
     }
     pub fn reconstruct(&mut self) {
-        self.components.drain_filter(|_, x| x.health() <= 0.);
+        let _ = self.components.extract_if(|_, x| x.health() <= 0.).collect::<Vec<_>>();
 
         let mut construction = BTreeMap::new();
         let mut top_construction = BTreeMap::new();
@@ -144,7 +144,7 @@ impl Spacecraft {
             }
         }
 
-        self.components.drain_filter(|id, _| !survives.contains(id));
+        let _ = self.components.extract_if(|id, _| !survives.contains(id)).collect::<Vec<_>>();
         let points = self
             .components
             .values()

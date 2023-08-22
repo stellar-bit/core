@@ -103,8 +103,8 @@ impl Game {
     }
 
     fn update_game_objects(&mut self) {
-        self.game_objects
-            .drain_filter(|_, game_object| game_object.health() <= 0.);
+        let _ = self.game_objects
+            .extract_if(|_, game_object| game_object.health() <= 0.).collect::<Vec<_>>();
 
         let mut effects = vec![];
         for game_object in self.game_objects.values_mut() {
