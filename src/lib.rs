@@ -88,9 +88,12 @@ pub mod prelude {
         Standard: rand::distributions::Distribution<K>,
     {
         fn insert_with_unique_key(&mut self, value: V, rng: &mut ChaChaRng) -> K {
-            let mut key = rng.gen();
-            while self.contains_key(&key) {
+            let mut key;
+            loop {
                 key = rng.gen();
+                if !self.contains_key(&key) {
+                    break;
+                }
             }
             self.insert(key.clone(), value);
             key

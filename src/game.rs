@@ -75,7 +75,8 @@ pub struct Game {
     #[serde(skip)]
     pub events: Vec<GameEvent>,
     pub time_elapsed: f32,
-    rng: ChaChaRng
+    rng: ChaChaRng,
+    log: Vec<String>
 }
 
 impl Game {
@@ -88,6 +89,7 @@ impl Game {
             events: vec![],
             time_elapsed: 0.,
             rng: ChaChaRng::from_entropy(),
+            log: vec![]
         }
     }
 
@@ -148,6 +150,12 @@ impl Game {
             time: now(),
         });
         match cmd {
+            GameCmd::AddLogMessage(msg) => {
+                if user != User::Server {
+                    return Err(GameCmdExecutionError::NotAuthorized);
+                }
+                self.log.push(msg);
+            }
             GameCmd::SpawnStarBase(player_id, position, velocity) => {
                 if user != User::Server {
                     return Err(GameCmdExecutionError::NotAuthorized);
@@ -536,7 +544,8 @@ pub enum GameCmd {
     ExecuteComponentCmd(GameObjectId, ComponentId, ComponentCmd),
     DeploySpacecraft(GameObjectId, usize),
     AddPlayer(PlayerToken),
-    SpawnStarBase(PlayerToken, Vec2, Vec2)
+    SpawnStarBase(PlayerToken, Vec2, Vec2),
+    AddLogMessage(String)
 }
 
 pub fn run_game(game: Arc<RwLock<Game>>, tick_rate: u32) {
