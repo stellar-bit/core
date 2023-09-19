@@ -410,6 +410,10 @@ impl Game {
         let sharp_obj = self.game_objects.get(&sharp_obj_id).unwrap();
         let other_obj = self.game_objects.get(&other_obj_id).unwrap();
 
+        if other_obj.body().bounds.len() == 0 {
+            return false;
+        }
+
         let col_line = (other_obj.body().point_position(other_obj_line%other_obj.body().bounds.len()), other_obj.body().point_position((other_obj_line+1)%other_obj.body().bounds.len()));
         let point_of_collision = sharp_obj.body().point_position(sharp_obj_point);
 
