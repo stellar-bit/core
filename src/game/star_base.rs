@@ -35,8 +35,8 @@ impl StarBase {
 }
 
 impl StarBase {
-    pub fn new(position: Vec2, time: f32, owner: PlayerToken) -> Self {
-        let body = GameObjectBody::new(position, Vec2::ZERO, 0., time, vec![
+    pub fn new(position: Vec2, velocity: Vec2, time: f32, owner: PlayerToken) -> Self {
+        let body = GameObjectBody::new(position, velocity, 0., time, vec![
             vec2(STARBASE_SIZE, STARBASE_SIZE),
             vec2(-STARBASE_SIZE, STARBASE_SIZE),
             vec2(-STARBASE_SIZE, -STARBASE_SIZE),

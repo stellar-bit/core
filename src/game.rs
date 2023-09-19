@@ -148,7 +148,25 @@ impl Game {
             time: now(),
         });
         match cmd {
-            GameCmd::SpawnAsteroid(pos, vel) => {
+            GameCmd::SpawnStarBase(player_id, position, velocity) => {
+                if user != User::Server {
+                    return Err(GameCmdExecutionError::NotAuthorized);
+                }
+                if !self.players.contains_key(&player_id) {
+                    return Err(GameCmdExecutionError::InvalidId);
+                }
+                self.game_objects
+                    .insert_with_unique_key(GameObject::StarBase(StarBase::new(
+                        position,
+                        velocity,
+                        self.time_elapsed,
+                        player_id,
+                    )), &mut self.rng);
+            }
+            GameCmd::SpawnRandomAsteroid(pos, vel) => {
+                if user != User::Server {
+                    return Err(GameCmdExecutionError::NotAuthorized);
+                }
                 let new_asteroid = Asteroid::new(
                     pos, vel, self.time_elapsed,
                     self.rng.gen::<f32>() * 5. + 2.,
@@ -159,7 +177,7 @@ impl Game {
             }
             GameCmd::BuildSpacecraft(game_object_id, spacecraft_structure, hangar_index) => {
                 let Some(GameObject::StarBase(star_base)) = self.game_objects.get_mut(&game_object_id) else {
-                    return Err(GameCmdExecutionError::InvalidGameObjectId);
+                    return Err(GameCmdExecutionError::InvalidId);
                 };
                 match user {
                     User::Player(player_id) => {
@@ -193,7 +211,7 @@ impl Game {
             }
             GameCmd::DeploySpacecraft(game_object_id, hangar_index) => {
                 let Some(GameObject::StarBase(star_base)) = self.game_objects.get_mut(&game_object_id) else {
-                    return Err(GameCmdExecutionError::InvalidGameObjectId);
+                    return Err(GameCmdExecutionError::InvalidId);
                 };
 
                 match user {
@@ -212,7 +230,7 @@ impl Game {
             }
             GameCmd::ExecuteComponentCmd(game_object_id, component_id, component_cmd) => {
                 let Some(GameObject::Spacecraft(spacecraft)) = self.game_objects.get_mut(&game_object_id) else {
-                    return Err(GameCmdExecutionError::InvalidGameObjectId);
+                    return Err(GameCmdExecutionError::InvalidId);
                 };
                 match user {
                     User::Player(player_id) => {
@@ -229,18 +247,11 @@ impl Game {
                 spacecraft.execute_component_cmd(component_id, component_cmd);
             }
             GameCmd::AddPlayer(player_id) => {
-                match user {
-                    User::Player(_) => return Err(GameCmdExecutionError::NotAuthorized),
-                    _ => (),
+                if user != User::Server {
+                    return Err(GameCmdExecutionError::NotAuthorized);
                 }
 
                 self.players.insert(player_id, Player::new());
-                self.game_objects
-                    .insert_with_unique_key(GameObject::StarBase(StarBase::new(
-                        Vec2::random_direction_seed(&mut self.rng) * 1000. * self.rng.gen::<f32>().sqrt(),
-                        self.time_elapsed,
-                        player_id,
-                    )), &mut self.rng);
             }
         }
         Ok(())
@@ -520,11 +531,12 @@ impl Game {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 // #[serde(tag = "cmd", content = "args")]
 pub enum GameCmd {
-    SpawnAsteroid(Vec2, Vec2),
+    SpawnRandomAsteroid(Vec2, Vec2),
     BuildSpacecraft(GameObjectId, SpacecraftStructure, usize),
     ExecuteComponentCmd(GameObjectId, ComponentId, ComponentCmd),
     DeploySpacecraft(GameObjectId, usize),
     AddPlayer(PlayerToken),
+    SpawnStarBase(PlayerToken, Vec2, Vec2)
 }
 
 pub fn run_game(game: Arc<RwLock<Game>>, tick_rate: u32) {
@@ -539,7 +551,7 @@ pub fn run_game(game: Arc<RwLock<Game>>, tick_rate: u32) {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Copy, IntoStaticStr)]
+#[derive(Serialize, Deserialize, Clone, Debug, Copy, IntoStaticStr, PartialEq)]
 // #[serde(tag = "user", content = "args")]
 pub enum User {
     Server,
@@ -550,6 +562,6 @@ pub enum User {
 #[derive(Debug)]
 pub enum GameCmdExecutionError {
     NotAuthorized,
-    InvalidGameObjectId,
+    InvalidId,
     Other(String),
 }
