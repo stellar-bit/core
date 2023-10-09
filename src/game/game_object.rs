@@ -51,12 +51,8 @@ impl GameObject {
         }
     }
     pub fn collides_point(&self, position: Vec2) -> bool {
-        match self {
-            GameObject::Asteroid(asteroid) => asteroid.collides_point(position),
-            GameObject::StarBase(star_base) => star_base.collides_point(position),
-            GameObject::Spacecraft(spacecraft) => spacecraft.collides_point(position),
-            GameObject::Projectile(projectile) => projectile.collides_point(position),
-        }
+        let shape = vec![position, position+Vec2::X*0.01, position+Vec2::Y*0.01];
+        collision_detection::sat_collision_detect(&self.body().bounds.iter().map(|x| self.body().relative_to_world(*x)).collect::<Vec<_>>(), &shape)
     }
     pub fn health(&self) -> f32 {
         if self.body().bounds.len() == 0 {
