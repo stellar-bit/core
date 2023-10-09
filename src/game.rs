@@ -75,8 +75,8 @@ pub struct Game {
     #[serde(skip)]
     pub events: Vec<GameEvent>,
     pub time_elapsed: f32,
+    pub log: Vec<String>,
     rng: ChaChaRng,
-    log: Vec<String>
 }
 
 impl Game {
