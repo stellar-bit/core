@@ -29,9 +29,6 @@ impl StarBase {
     pub fn destroyed(&self) -> bool {
         self.health <= 0.
     }
-    pub fn collides_point(&self, position: Vec2) -> bool {
-        self.body.position.distance(position) < 10.
-    }
 }
 
 impl StarBase {

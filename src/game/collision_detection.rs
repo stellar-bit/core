@@ -16,6 +16,7 @@ impl Ord for CollisionInfo {
 }
 
 pub fn sat_collision_detect(convex_hull1: &Vec<Vec2>, convex_hull2: &Vec<Vec2>) -> bool {
+
     let num_vertices1 = convex_hull1.len();
     let num_vertices2 = convex_hull2.len();
 

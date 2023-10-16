@@ -9,6 +9,14 @@ pub struct SpacecraftStructure {
 }
 
 impl SpacecraftStructure {
+    pub fn new() -> Self {
+        Self {
+            component_placeholders: vec![
+                ComponentPlaceholder::new(ComponentType::Central, ivec2(0, 0), Orientation::Up)
+            ],
+            tags: vec![]
+        }
+    }
     pub fn build_time(&self) -> f32 {
         self.component_placeholders
             .iter()
