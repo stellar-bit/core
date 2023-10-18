@@ -68,6 +68,10 @@ impl SpacecraftStructure {
             }
         }
 
+        if !central {
+            return false;
+        }
+
         for top_occupy in top_occupies {
             if !bot_occupies.contains(&top_occupy) {
                 return false;
