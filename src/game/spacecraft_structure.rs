@@ -28,12 +28,17 @@ impl SpacecraftStructure {
     /// - All components are connected
     /// - No components overlap
     /// - All top components are connected to a bottom component
+    /// - No component position coordinate absolute value is higher than 4
     pub fn valid(&self) -> bool {
         let mut central = false;
         let mut top_occupies = BTreeSet::new();
         let mut bot_occupies = BTreeSet::new();
 
         for component_placeholder in &self.component_placeholders {
+            if component_placeholder.position.x.abs() > 4 || component_placeholder.position.y.abs() > 4 {
+                return false;
+            }
+
             if let ComponentType::Central = component_placeholder.component_type {
                 if central {
                     return false;
