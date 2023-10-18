@@ -19,6 +19,14 @@ impl Orientation {
             Orientation::Right => 0.,
         }
     }
+    pub fn next(&self) -> Self {
+        match &self {
+            Orientation::Up => Orientation::Right,
+            Orientation::Right => Orientation::Down,
+            Orientation::Down => Orientation::Left,
+            Orientation::Left => Orientation::Up
+        }
+    }
 }
 
 pub trait Orient {
