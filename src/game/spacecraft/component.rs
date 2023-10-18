@@ -147,7 +147,7 @@ pub enum ComponentEffect {
     ApplyForce(Vec2), // for now only direction is sufficient, for more detail we might consider to add origin too
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, Copy, PartialEq, Eq)]
+#[derive(Clone, Serialize, Deserialize, Debug, Copy, PartialEq, Eq, strum::Display)]
 pub enum ComponentType {
     Central,
     SteelBlock,
