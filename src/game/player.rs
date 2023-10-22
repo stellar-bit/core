@@ -9,15 +9,7 @@ pub struct Player {
 
 impl Player {
     pub fn new() -> Self {
-        let materials = vec![
-            (Material::Iron, 200.),
-            (Material::Nickel, 200.),
-            (Material::Silicates, 200.),
-            (Material::Copper, 200.),
-            (Material::Carbon, 200.),
-        ]
-        .into_iter()
-        .collect();
+        let materials = BTreeMap::new();
 
         Self { materials }
     }

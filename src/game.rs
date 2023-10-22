@@ -19,7 +19,7 @@ pub use spacecraft::Spacecraft;
 pub use spacecraft::{
     Component, ComponentCmd, ComponentId, ComponentType, Orientation,
 };
-pub use star_base::{StarBase};
+pub use star_base::StarBase;
 pub use {projectile::Projectile, projectile::ProjectileType};
 
 use std::cmp::Reverse;
@@ -150,6 +150,16 @@ impl Game {
             time: now(),
         });
         match cmd {
+            GameCmd::GiveMaterials(player_id, materials) => {
+                if user != User::Server {
+                    return Err(GameCmdExecutionError::NotAuthorized);
+                }
+                let Some(player) = self.players.get_mut(&player_id) else {
+                    return Err(GameCmdExecutionError::InvalidId);
+                };
+
+                player.give_materials(materials);
+            }
             GameCmd::AddLogMessage(msg) => {
                 if user != User::Server {
                     return Err(GameCmdExecutionError::NotAuthorized);
@@ -549,7 +559,8 @@ pub enum GameCmd {
     DeploySpacecraft(GameObjectId, usize),
     AddPlayer(PlayerToken),
     SpawnStarBase(PlayerToken, Vec2, Vec2),
-    AddLogMessage(String)
+    AddLogMessage(String),
+    GiveMaterials(PlayerToken, BTreeMap<Material, f32>)
 }
 
 pub fn run_game(game: Arc<RwLock<Game>>, tick_rate: u32) {
