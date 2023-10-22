@@ -99,7 +99,6 @@ impl Game {
 
         self.time_elapsed += dt;
 
-        let time_measure = time::Instant::now();
         self.update_collisions();
         self.update_game_objects();
     }
@@ -158,7 +157,7 @@ impl Game {
                     return Err(GameCmdExecutionError::InvalidId);
                 };
 
-                player.give_materials(materials);
+                player.give_materials(materials.into_iter().collect());
             }
             GameCmd::AddLogMessage(msg) => {
                 if user != User::Server {
