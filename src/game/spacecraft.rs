@@ -7,7 +7,6 @@ use std::collections::HashSet;
 
 use super::GameObjectBody;
 
-
 #[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct Spacecraft {
     pub owner: PlayerToken,
@@ -103,7 +102,10 @@ impl Spacecraft {
         result
     }
     pub fn reconstruct(&mut self) {
-        let _ = self.components.extract_if(|_, x| x.health() <= 0.).collect::<Vec<_>>();
+        let _ = self
+            .components
+            .extract_if(|_, x| x.health() <= 0.)
+            .collect::<Vec<_>>();
 
         let mut construction = BTreeMap::new();
         let mut top_construction = BTreeMap::new();
@@ -144,7 +146,10 @@ impl Spacecraft {
             }
         }
 
-        let _ = self.components.extract_if(|id, _| !survives.contains(id)).collect::<Vec<_>>();
+        let _ = self
+            .components
+            .extract_if(|id, _| !survives.contains(id))
+            .collect::<Vec<_>>();
         let points = self
             .components
             .values()

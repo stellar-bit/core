@@ -24,7 +24,7 @@ impl Orientation {
             Orientation::Up => Orientation::Right,
             Orientation::Right => Orientation::Down,
             Orientation::Down => Orientation::Left,
-            Orientation::Left => Orientation::Up
+            Orientation::Left => Orientation::Up,
         }
     }
 }

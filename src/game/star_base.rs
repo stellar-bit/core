@@ -33,12 +33,18 @@ impl StarBase {
 
 impl StarBase {
     pub fn new(position: Vec2, velocity: Vec2, time: f32, owner: PlayerToken) -> Self {
-        let body = GameObjectBody::new(position, velocity, 0., time, vec![
-            vec2(STARBASE_SIZE, STARBASE_SIZE),
-            vec2(-STARBASE_SIZE, STARBASE_SIZE),
-            vec2(-STARBASE_SIZE, -STARBASE_SIZE),
-            vec2(STARBASE_SIZE, -STARBASE_SIZE),
-        ]);
+        let body = GameObjectBody::new(
+            position,
+            velocity,
+            0.,
+            time,
+            vec![
+                vec2(STARBASE_SIZE, STARBASE_SIZE),
+                vec2(-STARBASE_SIZE, STARBASE_SIZE),
+                vec2(-STARBASE_SIZE, -STARBASE_SIZE),
+                vec2(STARBASE_SIZE, -STARBASE_SIZE),
+            ],
+        );
         Self {
             body,
             owner,
@@ -66,7 +72,7 @@ impl StarBase {
         hangar.deploy = true;
     }
     pub fn update(&mut self, time: f32) -> Vec<GameObjectEffect> {
-        let dt = time-self.body.cur_time;
+        let dt = time - self.body.cur_time;
         let mut result = vec![];
         for hangar in self.hangars.iter_mut() {
             let hangar_effects = hangar.update(dt);

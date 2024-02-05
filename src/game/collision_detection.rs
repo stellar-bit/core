@@ -16,7 +16,6 @@ impl Ord for CollisionInfo {
 }
 
 pub fn sat_collision_detect(convex_hull1: &Vec<Vec2>, convex_hull2: &Vec<Vec2>) -> bool {
-
     let num_vertices1 = convex_hull1.len();
     let num_vertices2 = convex_hull2.len();
 
@@ -59,7 +58,6 @@ pub fn check_sharp_collision(
     velocity: Vec2,
     max_t: f32,
 ) -> Option<(f32, usize, usize)> {
-
     let mut collision: Option<(f32, usize, usize)> = None;
 
     for (i, p) in sharp_points.into_iter().enumerate() {

@@ -1,8 +1,10 @@
-use rand::{prelude::Distribution, distributions::Standard, Rng};
+use rand::{distributions::Standard, prelude::Distribution, Rng};
 
 use crate::prelude::*;
 
-#[derive(Serialize, Clone, Deserialize, Debug, PartialOrd, Ord, PartialEq, Eq, Hash, Copy, strum::Display)]
+#[derive(
+    Serialize, Clone, Deserialize, Debug, PartialOrd, Ord, PartialEq, Eq, Hash, Copy, strum::Display,
+)]
 pub enum Material {
     Iron,
     Nickel,

@@ -46,13 +46,14 @@ impl Engine {
 
     pub fn update(&mut self, time: f32) -> Vec<ComponentEffect> {
         let mut result = vec![];
-        let dt = time-self.body.cur_time;
+        let dt = time - self.body.cur_time;
         if self.active && self.fuel > 0. {
             let thrust = self.fuel.min(self.thrust * dt * self.power);
             self.fuel -= thrust;
 
             let force_vector = Vec2::from_angle(self.rotation + self.body.orientation.to_radians())
-                .rotate(Vec2::new(1., 0.)) / dt;
+                .rotate(Vec2::new(1., 0.))
+                / dt;
             result.push(ComponentEffect::ApplyForce(force_vector * thrust));
         }
         result

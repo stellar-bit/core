@@ -1,5 +1,5 @@
 [package]
-name = "spacecraft-core"
+name = "stellar-bit-core"
 version = "0.1.0"
 edition = "2021"
 rust="stable"

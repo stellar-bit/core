@@ -12,8 +12,8 @@ pub mod prelude {
     pub use super::network;
 
     pub use bincode;
-    use rand::Rng;
     use rand::distributions::Standard;
+    use rand::Rng;
     use rand_chacha::ChaChaRng;
     use serde::de::DeserializeOwned;
     pub use serde_json;
@@ -46,9 +46,9 @@ pub mod prelude {
 
     pub use game::{
         collision_detection::convex_hull, Asteroid, Component, ComponentCmd, ComponentId,
-        ComponentPlaceholder, ComponentType, Game, GameCmd, GameEvent,
-        GameObject, GameObjectBody, GameObjectId, Material, Orientation, Player, PlayerToken,
-        Projectile, ProjectileType, Spacecraft, SpacecraftStructure, StarBase, User, GameObjectEffect
+        ComponentPlaceholder, ComponentType, Game, GameCmd, GameEvent, GameObject, GameObjectBody,
+        GameObjectEffect, GameObjectId, Material, Orientation, Player, PlayerToken, Projectile,
+        ProjectileType, Spacecraft, SpacecraftStructure, StarBase, User,
     };
     pub use glam::{ivec2, uvec2, vec2, IVec2, UVec2, Vec2};
 
@@ -128,7 +128,6 @@ pub mod prelude {
             Vec2::X.angle_between(self)
         }
     }
-
 }
 
 #[cfg(test)]

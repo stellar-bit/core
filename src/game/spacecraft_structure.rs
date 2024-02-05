@@ -11,10 +11,12 @@ pub struct SpacecraftStructure {
 impl SpacecraftStructure {
     pub fn new() -> Self {
         Self {
-            component_placeholders: vec![
-                ComponentPlaceholder::new(ComponentType::Central, ivec2(0, 0), Orientation::Up)
-            ],
-            tags: vec![]
+            component_placeholders: vec![ComponentPlaceholder::new(
+                ComponentType::Central,
+                ivec2(0, 0),
+                Orientation::Up,
+            )],
+            tags: vec![],
         }
     }
     pub fn build_time(&self) -> f32 {
@@ -35,7 +37,9 @@ impl SpacecraftStructure {
         let mut bot_occupies = BTreeSet::new();
 
         for component_placeholder in &self.component_placeholders {
-            if component_placeholder.position.x.abs() > 4 || component_placeholder.position.y.abs() > 4 {
+            if component_placeholder.position.x.abs() > 4
+                || component_placeholder.position.y.abs() > 4
+            {
                 return false;
             }
 

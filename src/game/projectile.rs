@@ -13,8 +13,8 @@ pub struct Projectile {
 }
 
 impl Projectile {
-    pub fn update(&mut self, time: f32) -> Vec<GameObjectEffect>{
-        self.lifetime -= time-self.body.cur_time;
+    pub fn update(&mut self, time: f32) -> Vec<GameObjectEffect> {
+        self.lifetime -= time - self.body.cur_time;
 
         vec![]
     }
@@ -59,7 +59,14 @@ pub enum ProjectileType {
 }
 
 impl ProjectileType {
-    pub fn construct(&self, position: Vec2, velocity: Vec2, rotation: f32, time: f32, owner: PlayerToken) -> Projectile {
+    pub fn construct(
+        &self,
+        position: Vec2,
+        velocity: Vec2,
+        rotation: f32,
+        time: f32,
+        owner: PlayerToken,
+    ) -> Projectile {
         let (health, mass, scale, lifetime, destructive_power) = match &self {
             ProjectileType::Bullet => (50., 0.3, vec2(0.5, 0.2), 5., 2.),
             ProjectileType::Missile => (500., 1., vec2(0.3, 0.3), 20., 3.),
@@ -72,7 +79,7 @@ impl ProjectileType {
             vec2(-scale.x, -scale.y) / 2.,
             vec2(scale.x, -scale.y) / 2.,
         ];
-        
+
         let body = GameObjectBody::new(position, velocity, rotation, time, bounds);
 
         Projectile {

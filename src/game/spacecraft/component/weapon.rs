@@ -48,7 +48,7 @@ impl Weapon {
     }
     pub fn update(&mut self, time: f32) -> Vec<ComponentEffect> {
         let dt = time - self.body.cur_time;
-        
+
         let mut effects = vec![];
 
         self.fire_rate_timer += dt;

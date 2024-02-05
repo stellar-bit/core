@@ -51,8 +51,20 @@ impl GameObject {
         }
     }
     pub fn collides_point(&self, position: Vec2) -> bool {
-        let shape = vec![position, position+Vec2::X*0.01, position+Vec2::Y*0.01];
-        collision_detection::sat_collision_detect(&self.body().bounds.iter().map(|x| self.body().relative_to_world(*x)).collect::<Vec<_>>(), &shape)
+        let shape = vec![
+            position,
+            position + Vec2::X * 0.01,
+            position + Vec2::Y * 0.01,
+        ];
+        collision_detection::sat_collision_detect(
+            &self
+                .body()
+                .bounds
+                .iter()
+                .map(|x| self.body().relative_to_world(*x))
+                .collect::<Vec<_>>(),
+            &shape,
+        )
     }
     pub fn health(&self) -> f32 {
         if self.body().bounds.len() == 0 {
@@ -91,7 +103,8 @@ impl GameObject {
         let pos_offset = self.body().position - other.body().position;
 
         let other_bounds = other
-            .body().bounds
+            .body()
+            .bounds
             .iter()
             .map(|&ver| {
                 let rotation = other.body().rotation - self.body().rotation;
@@ -116,14 +129,14 @@ impl GameObject {
     }
     /// Less accurate update but can be used during collisions
     pub fn update_fixed(&mut self, time: f32) -> Vec<GameObjectEffect> {
-        if time-self.body().cur_time == 0. {
+        if time - self.body().cur_time == 0. {
             return vec![];
         }
         let result = match self {
             GameObject::Asteroid(_) => vec![],
             GameObject::StarBase(star_base) => star_base.update(time),
             GameObject::Spacecraft(spacecraft) => spacecraft.update(time),
-            GameObject::Projectile(projectile) => projectile.update(time)
+            GameObject::Projectile(projectile) => projectile.update(time),
         };
         self.body_mut().update_fixed(time);
         result
@@ -145,11 +158,17 @@ pub struct GameObjectBody {
     pub acceleration: Vec2,
     pub angular_acceleration: f32,
     pub bounds: Vec<Vec2>,
-    pub updated: usize
+    pub updated: usize,
 }
 
 impl GameObjectBody {
-    pub fn new(position: Vec2, velocity: Vec2, rotation: f32, cur_time: f32, bounds: Vec<Vec2>) -> Self {
+    pub fn new(
+        position: Vec2,
+        velocity: Vec2,
+        rotation: f32,
+        cur_time: f32,
+        bounds: Vec<Vec2>,
+    ) -> Self {
         Self {
             position,
             velocity,
@@ -159,7 +178,7 @@ impl GameObjectBody {
             angular_acceleration: 0.,
             cur_time,
             bounds,
-            updated: 0
+            updated: 0,
         }
     }
     pub fn from_position(position: Vec2) -> Self {

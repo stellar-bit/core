@@ -95,7 +95,7 @@ pub struct ComponentBody {
 
 impl ComponentBody {
     pub fn update(&mut self, time: f32) {
-        assert!(self.cur_time<=time);
+        assert!(self.cur_time <= time);
 
         self.cur_time = time;
     }
@@ -157,12 +157,12 @@ pub enum ComponentType {
 }
 
 impl ComponentType {
-    pub fn build(&self, position: IVec2, orientation: Orientation,) -> Component {
+    pub fn build(&self, position: IVec2, orientation: Orientation) -> Component {
         let body = ComponentBody {
             position,
             orientation,
             origin: *self,
-            cur_time: 0.
+            cur_time: 0.,
         };
         let health = self.health();
         match self {
@@ -248,29 +248,24 @@ impl ComponentType {
     }
     pub fn materials(&self) -> Vec<(Material, f32)> {
         match self {
-            ComponentType::Central => vec![
-                (Material::Nickel, 15.), 
-                (Material::Iron, 10.),
-            ],
-            ComponentType::SteelBlock => vec![
-                (Material::Iron, 20.),
-            ],
+            ComponentType::Central => vec![(Material::Nickel, 15.), (Material::Iron, 10.)],
+            ComponentType::SteelBlock => vec![(Material::Iron, 20.)],
             ComponentType::RaptorEngine => vec![
-                (Material::Iron, 10.), 
+                (Material::Iron, 10.),
                 (Material::Nickel, 10.),
-                (Material::Copper, 5.), 
+                (Material::Copper, 5.),
             ],
             ComponentType::LaserWeapon => vec![
-                (Material::Silicates, 5.), 
+                (Material::Silicates, 5.),
                 (Material::Iron, 5.),
-                (Material::Carbon, 2.), 
+                (Material::Carbon, 2.),
             ],
             ComponentType::MissileLauncher => vec![
                 (Material::Iron, 10.),
                 (Material::Silicates, 10.),
                 (Material::Nickel, 5.),
-                (Material::Copper, 3.), 
-                (Material::Carbon, 2.), 
+                (Material::Copper, 3.),
+                (Material::Carbon, 2.),
             ],
         }
     }

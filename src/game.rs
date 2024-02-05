@@ -13,12 +13,10 @@ pub use asteroid::Asteroid;
 pub use game_object::*;
 pub use material::Material;
 pub use player::{Player, PlayerToken};
-use rand::{SeedableRng, Rng};
+use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
 pub use spacecraft::Spacecraft;
-pub use spacecraft::{
-    Component, ComponentCmd, ComponentId, ComponentType, Orientation,
-};
+pub use spacecraft::{Component, ComponentCmd, ComponentId, ComponentType, Orientation};
 pub use star_base::StarBase;
 pub use {projectile::Projectile, projectile::ProjectileType};
 
@@ -30,7 +28,7 @@ use strum::IntoStaticStr;
 
 pub use spacecraft_structure::{ComponentPlaceholder, SpacecraftStructure};
 
-use self::collision_detection::{CollisionInfo, check_sharp_collision};
+use self::collision_detection::{check_sharp_collision, CollisionInfo};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct GameSync {
@@ -89,7 +87,7 @@ impl Game {
             events: vec![],
             time_elapsed: 0.,
             rng: ChaChaRng::from_entropy(),
-            log: vec![]
+            log: vec![],
         }
     }
 
@@ -104,8 +102,10 @@ impl Game {
     }
 
     fn update_game_objects(&mut self) {
-        let _ = self.game_objects
-            .extract_if(|_, game_object| game_object.health() <= 0.).collect::<Vec<_>>();
+        let _ = self
+            .game_objects
+            .extract_if(|_, game_object| game_object.health() <= 0.)
+            .collect::<Vec<_>>();
 
         let mut effects = vec![];
         for game_object in self.game_objects.values_mut() {
@@ -172,20 +172,24 @@ impl Game {
                 if !self.players.contains_key(&player_id) {
                     return Err(GameCmdExecutionError::InvalidId);
                 }
-                self.game_objects
-                    .insert_with_unique_key(GameObject::StarBase(StarBase::new(
+                self.game_objects.insert_with_unique_key(
+                    GameObject::StarBase(StarBase::new(
                         position,
                         velocity,
                         self.time_elapsed,
                         player_id,
-                    )), &mut self.rng);
+                    )),
+                    &mut self.rng,
+                );
             }
             GameCmd::SpawnRandomAsteroid(pos, vel) => {
                 if user != User::Server {
                     return Err(GameCmdExecutionError::NotAuthorized);
                 }
                 let new_asteroid = Asteroid::new(
-                    pos, vel, self.time_elapsed,
+                    pos,
+                    vel,
+                    self.time_elapsed,
                     self.rng.gen::<f32>() * 5. + 2.,
                     self.rng.gen(),
                 );
@@ -193,7 +197,9 @@ impl Game {
                     .insert_with_unique_key(GameObject::Asteroid(new_asteroid), &mut self.rng);
             }
             GameCmd::BuildSpacecraft(game_object_id, spacecraft_structure, hangar_index) => {
-                let Some(GameObject::StarBase(star_base)) = self.game_objects.get_mut(&game_object_id) else {
+                let Some(GameObject::StarBase(star_base)) =
+                    self.game_objects.get_mut(&game_object_id)
+                else {
                     return Err(GameCmdExecutionError::InvalidId);
                 };
                 match user {
@@ -227,7 +233,9 @@ impl Game {
                 }
             }
             GameCmd::DeploySpacecraft(game_object_id, hangar_index) => {
-                let Some(GameObject::StarBase(star_base)) = self.game_objects.get_mut(&game_object_id) else {
+                let Some(GameObject::StarBase(star_base)) =
+                    self.game_objects.get_mut(&game_object_id)
+                else {
                     return Err(GameCmdExecutionError::InvalidId);
                 };
 
@@ -246,7 +254,9 @@ impl Game {
                 star_base.deploy_spacecraft(hangar_index);
             }
             GameCmd::ExecuteComponentCmd(game_object_id, component_id, component_cmd) => {
-                let Some(GameObject::Spacecraft(spacecraft)) = self.game_objects.get_mut(&game_object_id) else {
+                let Some(GameObject::Spacecraft(spacecraft)) =
+                    self.game_objects.get_mut(&game_object_id)
+                else {
                     return Err(GameCmdExecutionError::InvalidId);
                 };
                 match user {
@@ -295,7 +305,7 @@ impl Game {
         let mut destroyed_game_objects: Vec<(GameObjectId, GameObjectId)> = vec![];
 
         let game_object_ids = self.game_objects.keys().copied().collect::<Vec<_>>();
-        
+
         // -------------------COLLISIONS------------------- //
 
         let mut collisions_pq = BinaryHeap::new();
@@ -305,10 +315,12 @@ impl Game {
                 let owner1 = self.game_objects[&$obj_1_id].owner();
                 let owner2 = self.game_objects[&$obj_2_id].owner();
                 if owner1.is_none() || owner1 != owner2 {
-                    if let Some(collision) = self.check_sharp_object_collision($obj_1_id, $obj_2_id) {
+                    if let Some(collision) = self.check_sharp_object_collision($obj_1_id, $obj_2_id)
+                    {
                         collisions_pq.push(Reverse(collision));
                     }
-                    if let Some(collision) = self.check_sharp_object_collision($obj_2_id, $obj_1_id) {
+                    if let Some(collision) = self.check_sharp_object_collision($obj_2_id, $obj_1_id)
+                    {
                         collisions_pq.push(Reverse(collision));
                     }
                 }
@@ -324,37 +336,66 @@ impl Game {
             fn cmp(&self, other: &Self) -> std::cmp::Ordering {
                 self.0.partial_cmp(&other.0).unwrap()
             }
-        } 
-
-        macro_rules! compute_x_bound {
-            ($id: expr) => {
-                {
-                    let mut body = self.game_objects[$id].body().clone();
-                    let mut xs = body.bounds.clone().into_iter().map(|p| body.relative_to_world(p).x).collect::<Vec<_>>();
-
-                    body.update_fixed(self.time_elapsed);
-
-                    xs.extend(body.bounds.clone().into_iter().map(|p| body.relative_to_world(p).x));
-
-                    (*xs.iter().min_by(|a, b| a.partial_cmp(b).unwrap()).unwrap_or(&-1.), *xs.iter().max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap_or(&0.))
-                }
-            }
         }
 
-        let mut x_bounds = game_object_ids.iter().map(|id| {
-            let (min, max) = compute_x_bound!(id);
-            XBound(min, max, *id)
-        }).collect::<Vec<_>>();
+        macro_rules! compute_x_bound {
+            ($id: expr) => {{
+                let mut body = self.game_objects[$id].body().clone();
+                let mut xs = body
+                    .bounds
+                    .clone()
+                    .into_iter()
+                    .map(|p| body.relative_to_world(p).x)
+                    .collect::<Vec<_>>();
+
+                body.update_fixed(self.time_elapsed);
+
+                xs.extend(
+                    body.bounds
+                        .clone()
+                        .into_iter()
+                        .map(|p| body.relative_to_world(p).x),
+                );
+
+                (
+                    *xs.iter()
+                        .min_by(|a, b| a.partial_cmp(b).unwrap())
+                        .unwrap_or(&-1.),
+                    *xs.iter()
+                        .max_by(|a, b| a.partial_cmp(b).unwrap())
+                        .unwrap_or(&0.),
+                )
+            }};
+        }
+
+        let mut x_bounds = game_object_ids
+            .iter()
+            .map(|id| {
+                let (min, max) = compute_x_bound!(id);
+                XBound(min, max, *id)
+            })
+            .collect::<Vec<_>>();
 
         let mut bounds_left_bt = BTreeSet::from_iter(x_bounds.clone());
-        let mut bounds_right_bt = BTreeSet::from_iter(x_bounds.iter().map(|bound| XBound(bound.1, bound.0, bound.2)));
-        
-        let id_map = game_object_ids.iter().enumerate().map(|(i, id)| (*id, i)).collect::<HashMap<_, _>>();
+        let mut bounds_right_bt = BTreeSet::from_iter(
+            x_bounds
+                .iter()
+                .map(|bound| XBound(bound.1, bound.0, bound.2)),
+        );
+
+        let id_map = game_object_ids
+            .iter()
+            .enumerate()
+            .map(|(i, id)| (*id, i))
+            .collect::<HashMap<_, _>>();
 
         game_object_ids.iter().enumerate().for_each(|(i, id)| {
             let x_range = x_bounds[i]..XBound(x_bounds[i].1, 0., 0);
 
-            for other_bound in bounds_left_bt.range(x_range.clone()).chain(bounds_right_bt.range(x_range)) {
+            for other_bound in bounds_left_bt
+                .range(x_range.clone())
+                .chain(bounds_right_bt.range(x_range))
+            {
                 add_collisions!(*id, other_bound.2);
             }
         });
@@ -367,7 +408,7 @@ impl Game {
             let ids = [col.sharp_obj.0, col.other_obj.0];
             for i in 0..2 {
                 if self.game_objects[&ids[i]].health() <= 0. {
-                    destroyed_game_objects.push((ids[i], ids[(i+1)%2]));
+                    destroyed_game_objects.push((ids[i], ids[(i + 1) % 2]));
                 }
                 let new_bound = compute_x_bound!(&ids[i]);
                 let new_bound = XBound(new_bound.0, new_bound.1, ids[i]);
@@ -383,7 +424,10 @@ impl Game {
 
                 let x_range = new_bound..XBound(new_bound.1, 0., 0);
 
-                for other_bound in bounds_left_bt.range(x_range.clone()).chain(bounds_right_bt.range(x_range)) {
+                for other_bound in bounds_left_bt
+                    .range(x_range.clone())
+                    .chain(bounds_right_bt.range(x_range))
+                {
                     add_collisions!(ids[i], other_bound.2);
                 }
             }
@@ -403,16 +447,27 @@ impl Game {
         let (sharp_obj_id, sharp_obj_stamp, sharp_obj_point) = col.sharp_obj;
         let (other_obj_id, other_obj_stamp, other_obj_line) = col.other_obj;
 
-        if sharp_obj_stamp != self.game_objects[&sharp_obj_id].body().updated ||
-            other_obj_stamp != self.game_objects[&other_obj_id].body().updated ||
-            self.game_objects[&sharp_obj_id].health() <= 0. ||
-            self.game_objects[&other_obj_id].health() <= 0. {
+        if sharp_obj_stamp != self.game_objects[&sharp_obj_id].body().updated
+            || other_obj_stamp != self.game_objects[&other_obj_id].body().updated
+            || self.game_objects[&sharp_obj_id].health() <= 0.
+            || self.game_objects[&other_obj_id].health() <= 0.
+        {
             return false;
         }
-        for eff in self.game_objects.get_mut(&sharp_obj_id).unwrap().update_fixed(col.time) {
+        for eff in self
+            .game_objects
+            .get_mut(&sharp_obj_id)
+            .unwrap()
+            .update_fixed(col.time)
+        {
             self.handle_game_object_effect(eff);
         }
-        for eff in self.game_objects.get_mut(&other_obj_id).unwrap().update_fixed(col.time) {
+        for eff in self
+            .game_objects
+            .get_mut(&other_obj_id)
+            .unwrap()
+            .update_fixed(col.time)
+        {
             self.handle_game_object_effect(eff);
         }
 
@@ -423,33 +478,41 @@ impl Game {
             return false;
         }
 
-        let col_line = (other_obj.body().point_position(other_obj_line%other_obj.body().bounds.len()), other_obj.body().point_position((other_obj_line+1)%other_obj.body().bounds.len()));
+        let col_line = (
+            other_obj
+                .body()
+                .point_position(other_obj_line % other_obj.body().bounds.len()),
+            other_obj
+                .body()
+                .point_position((other_obj_line + 1) % other_obj.body().bounds.len()),
+        );
         let point_of_collision = sharp_obj.body().point_position(sharp_obj_point);
 
-        let normal = (col_line.0-col_line.1).perp().normalize();
+        let normal = (col_line.0 - col_line.1).perp().normalize();
 
         let mass1 = sharp_obj.mass();
         let mass2 = other_obj.mass();
 
         let bounciness = sharp_obj.bounciness() * other_obj.bounciness();
 
-        let relative_velocity = other_obj.body().velocity-sharp_obj.body().velocity;
+        let relative_velocity = other_obj.body().velocity - sharp_obj.body().velocity;
 
-        let impulse_numerator = -(1.+bounciness) * (relative_velocity).dot(normal);
-        let impulse_denominator = (1./mass1) + (1./mass2);
-        let impulse = impulse_numerator/impulse_denominator;
+        let impulse_numerator = -(1. + bounciness) * (relative_velocity).dot(normal);
+        let impulse_denominator = (1. / mass1) + (1. / mass2);
+        let impulse = impulse_numerator / impulse_denominator;
 
         let destructive_power = sharp_obj.destructive_power() * other_obj.destructive_power();
-        let damage = (1.-bounciness) * relative_velocity.dot(normal).abs().powi(2) * destructive_power;
+        let damage =
+            (1. - bounciness) * relative_velocity.dot(normal).abs().powi(2) * destructive_power;
 
         let sharp_obj_owner = sharp_obj.owner();
         let other_obj_owner = other_obj.owner();
 
         let sharp_obj = self.game_objects.get_mut(&sharp_obj_id).unwrap();
         sharp_obj.body_mut().velocity -= impulse * normal / mass1;
-        sharp_obj.body_mut().position += normal*0.005;
+        sharp_obj.body_mut().position += normal * 0.005;
 
-        let material_gain = sharp_obj.apply_damage(damage*mass2, point_of_collision);
+        let material_gain = sharp_obj.apply_damage(damage * mass2, point_of_collision);
         if let Some(player_id) = other_obj_owner {
             let player = self.players.get_mut(&player_id).unwrap();
             player.give_materials(material_gain);
@@ -458,9 +521,9 @@ impl Game {
         let other_obj = self.game_objects.get_mut(&other_obj_id).unwrap();
 
         other_obj.body_mut().velocity += impulse * normal / mass2;
-        other_obj.body_mut().position -= normal*0.005;
+        other_obj.body_mut().position -= normal * 0.005;
 
-        let material_gain = other_obj.apply_damage(damage*mass1, point_of_collision);
+        let material_gain = other_obj.apply_damage(damage * mass1, point_of_collision);
         if let Some(player_id) = sharp_obj_owner {
             let player = self.players.get_mut(&player_id).unwrap();
             player.give_materials(material_gain);
@@ -469,30 +532,48 @@ impl Game {
         true
     }
 
-    pub fn check_sharp_object_collision(&self, sharp_obj_id: GameObjectId, other_obj_id: GameObjectId) -> Option<CollisionInfo> {
+    pub fn check_sharp_object_collision(
+        &self,
+        sharp_obj_id: GameObjectId,
+        other_obj_id: GameObjectId,
+    ) -> Option<CollisionInfo> {
         let mut sharp_body = self.game_objects[&sharp_obj_id].body().clone();
         let mut other_body = self.game_objects[&other_obj_id].body().clone();
 
         let cur_time = sharp_body.cur_time.max(other_body.cur_time);
 
-        sharp_body.position += sharp_body.velocity*(cur_time-sharp_body.cur_time);
-        other_body.position += other_body.velocity*(cur_time-other_body.cur_time);
+        sharp_body.position += sharp_body.velocity * (cur_time - sharp_body.cur_time);
+        other_body.position += other_body.velocity * (cur_time - other_body.cur_time);
 
         sharp_body.velocity -= other_body.velocity;
         other_body.velocity = Vec2::ZERO;
 
         // we rotate extra 1 (any number) to avoid vertical and horizontal lines
         let extra_rot = 1.;
-        let sharp_points = sharp_body.bounds.clone().into_iter().map(|x| sharp_body.relative_to_world(x).rotate_rad(extra_rot)).collect();
-        let other_points = other_body.bounds.clone().into_iter().map(|x| other_body.relative_to_world(x).rotate_rad(extra_rot)).collect();
+        let sharp_points = sharp_body
+            .bounds
+            .clone()
+            .into_iter()
+            .map(|x| sharp_body.relative_to_world(x).rotate_rad(extra_rot))
+            .collect();
+        let other_points = other_body
+            .bounds
+            .clone()
+            .into_iter()
+            .map(|x| other_body.relative_to_world(x).rotate_rad(extra_rot))
+            .collect();
         sharp_body.velocity = sharp_body.velocity.rotate_rad(extra_rot);
 
-        check_sharp_collision(sharp_points, other_points, sharp_body.velocity, self.time_elapsed-cur_time).map(|(dt, sharp_point, other_line)| {
-            CollisionInfo {
-                time: cur_time+dt,
-                sharp_obj: (sharp_obj_id, sharp_body.updated, sharp_point),
-                other_obj: (other_obj_id, other_body.updated, other_line)
-            }
+        check_sharp_collision(
+            sharp_points,
+            other_points,
+            sharp_body.velocity,
+            self.time_elapsed - cur_time,
+        )
+        .map(|(dt, sharp_point, other_line)| CollisionInfo {
+            time: cur_time + dt,
+            sharp_obj: (sharp_obj_id, sharp_body.updated, sharp_point),
+            other_obj: (other_obj_id, other_body.updated, other_line),
         })
     }
 
@@ -559,7 +640,7 @@ pub enum GameCmd {
     AddPlayer(PlayerToken),
     SpawnStarBase(PlayerToken, Vec2, Vec2),
     AddLogMessage(String),
-    GiveMaterials(PlayerToken, BTreeMap<Material, f32>)
+    GiveMaterials(PlayerToken, BTreeMap<Material, f32>),
 }
 
 pub fn run_game(game: Arc<RwLock<Game>>, tick_rate: u32) {
