@@ -79,10 +79,10 @@ impl GameObject {
     }
     pub fn bounciness(&self) -> f32 {
         match self {
-            GameObject::Asteroid(asteroid) => 0.9,
-            GameObject::StarBase(star_base) => 0.7,
-            GameObject::Spacecraft(spacecraft) => 0.4,
-            GameObject::Projectile(projectile) => 0.1,
+            GameObject::Asteroid(_asteroid) => 0.9,
+            GameObject::StarBase(_star_base) => 0.7,
+            GameObject::Spacecraft(_spacecraft) => 0.4,
+            GameObject::Projectile(_projectile) => 0.1,
         }
     }
     pub fn destructive_power(&self) -> f32 {
@@ -119,7 +119,7 @@ impl GameObject {
             return vec![];
         }
         let result = match self {
-            GameObject::Asteroid(asteroid) => vec![],
+            GameObject::Asteroid(_asteroid) => vec![],
             GameObject::StarBase(star_base) => star_base.update(time),
             GameObject::Spacecraft(spacecraft) => spacecraft.update(time),
             GameObject::Projectile(projectile) => projectile.update(time),
