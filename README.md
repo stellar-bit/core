@@ -1,4 +1,4 @@
-# Stellar Bit Core
+# Stellar Bit - Core
 
 This repository contains the main building blocks which are shared accross `client`, `server` or `spacecraft-computers`.
 
