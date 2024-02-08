@@ -116,31 +116,31 @@ impl Game {
             self.handle_game_object_effect(effect);
         }
 
-        self.apply_gravity();
+        // self.apply_gravity();
     }
     pub fn apply_gravity(&mut self) {
-        // let mut asteroids = self
-        //     .game_objects
-        //     .values_mut()
-        //     .filter_map(|game_object| match game_object {
-        //         GameObject::Asteroid(asteroid) => Some(asteroid),
-        //         _ => None,
-        //     })
-        //     .collect::<Vec<_>>();
+        let mut asteroids = self
+            .game_objects
+            .values_mut()
+            .filter_map(|game_object| match game_object {
+                GameObject::Asteroid(asteroid) => Some(asteroid),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
 
-        // for i in 0..asteroids.len() {
-        //     for j in i + 1..asteroids.len() {
-        //         let distance = asteroids[i]
-        //             .body
-        //             .position
-        //             .distance(asteroids[j].body.position);
-        //         let force = 100. / distance.powi(2).max(5.);
-        //         let direction =
-        //             (asteroids[j].body.position - asteroids[i].body.position).normalize();
-        //         asteroids[i].body.acceleration += direction * force;
-        //         asteroids[j].body.acceleration -= direction * force;
-        //     }
-        // }
+        for i in 0..asteroids.len() {
+            for j in i + 1..asteroids.len() {
+                let distance = asteroids[i]
+                    .body
+                    .position
+                    .distance(asteroids[j].body.position);
+                let force = 100. / distance.powi(2).max(5.);
+                let direction =
+                    (asteroids[j].body.position - asteroids[i].body.position).normalize();
+                asteroids[i].body.acceleration += direction * force;
+                asteroids[j].body.acceleration -= direction * force;
+            }
+        }
     }
     pub fn execute_cmd(&mut self, user: User, cmd: GameCmd) -> Result<(), GameCmdExecutionError> {
         self.cmds_history.push(ExecutedGameCmd {
