@@ -53,8 +53,8 @@ impl GameObject {
     pub fn collides_point(&self, position: Vec2) -> bool {
         let shape = vec![
             position,
-            position - Vec2::X * 0.5,
-            position - Vec2::Y * 0.5,
+            position - Vec2::X * 0.01,
+            position - Vec2::Y * 0.01,
         ];
         collision_detection::sat_collision_detect(
             &self
