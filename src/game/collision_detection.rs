@@ -22,7 +22,7 @@ pub fn sat_collision_detect(convex_hull1: &Vec<Vec2>, convex_hull2: &Vec<Vec2>) 
     // Iterate through all axes of the first convex hull
     for i in 0..num_vertices1 {
         let axis = (convex_hull1[(i + 1) % num_vertices1] - convex_hull1[i])
-            .rotate_rad(-90.)
+            .rotate_rad(-PI/2.0)
             .normalize();
         let (min1, max1) = project(convex_hull1, axis);
         let (min2, max2) = project(convex_hull2, axis);
@@ -36,7 +36,7 @@ pub fn sat_collision_detect(convex_hull1: &Vec<Vec2>, convex_hull2: &Vec<Vec2>) 
     // Iterate through all axes of the second convex hull
     for i in 0..num_vertices2 {
         let axis = (convex_hull2[(i + 1) % num_vertices2] - convex_hull2[i])
-            .rotate_rad(-90.)
+            .rotate_rad(-PI/2.0)
             .normalize();
         let (min1, max1) = project(convex_hull1, axis);
         let (min2, max2) = project(convex_hull2, axis);
