@@ -41,7 +41,7 @@ impl Asteroid {
     pub fn destroyed(&self) -> bool {
         self.health <= 0.
     }
-    pub fn owner(&self) -> Option<PlayerToken> {
+    pub fn owner(&self) -> Option<PlayerId> {
         None
     }
     pub fn collides_point(&self, position: Vec2) -> bool {

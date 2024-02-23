@@ -10,13 +10,13 @@ const STARBASE_SIZE: f32 = 15.;
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct StarBase {
     pub body: GameObjectBody,
-    pub owner: PlayerToken,
+    pub owner: PlayerId,
     health: f32,
     pub hangars: Vec<Hangar>,
 }
 
 impl StarBase {
-    pub fn owner(&self) -> Option<PlayerToken> {
+    pub fn owner(&self) -> Option<PlayerId> {
         Some(self.owner)
     }
     pub fn apply_damage(&mut self, damage: f32, _position: Vec2) -> Vec<(Material, f32)> {
@@ -32,7 +32,7 @@ impl StarBase {
 }
 
 impl StarBase {
-    pub fn new(position: Vec2, velocity: Vec2, time: f32, owner: PlayerToken) -> Self {
+    pub fn new(position: Vec2, velocity: Vec2, time: f32, owner: PlayerId) -> Self {
         let body = GameObjectBody::new(
             position,
             velocity,

@@ -42,7 +42,7 @@ impl GameObject {
             GameObject::Projectile(projectile) => projectile.destroyed(),
         }
     }
-    pub fn owner(&self) -> Option<PlayerToken> {
+    pub fn owner(&self) -> Option<PlayerId> {
         match self {
             GameObject::Asteroid(_) => None,
             GameObject::StarBase(star_base) => star_base.owner(),

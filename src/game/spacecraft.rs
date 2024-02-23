@@ -9,7 +9,7 @@ use super::GameObjectBody;
 
 #[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct Spacecraft {
-    pub owner: PlayerToken,
+    pub owner: PlayerId,
     pub components: BTreeMap<ComponentId, Component>,
     pub body: GameObjectBody,
     central_component: ComponentId,
@@ -25,7 +25,7 @@ impl Spacecraft {
     /// Receives a verified structure and builds a spacecraft from it
     pub fn build(
         structure: SpacecraftStructure,
-        owner: PlayerToken,
+        owner: PlayerId,
         transform: GameObjectBody,
     ) -> Self {
         let mut components = BTreeMap::new();
@@ -269,7 +269,7 @@ impl Spacecraft {
         self.components.is_empty()
     }
 
-    pub fn owner(&self) -> Option<PlayerToken> {
+    pub fn owner(&self) -> Option<PlayerId> {
         Some(self.owner)
     }
     pub fn collides_point(&self, position: Vec2) -> bool {

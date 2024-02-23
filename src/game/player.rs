@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-pub type PlayerToken = u64;
+pub type PlayerId = u64;
 
 #[derive(Default, Clone, Serialize, Deserialize, Debug)]
 pub struct Player {

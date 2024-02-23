@@ -3,7 +3,7 @@ use crate::prelude::*;
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Projectile {
     pub body: GameObjectBody,
-    pub owner: PlayerToken,
+    pub owner: PlayerId,
     pub health: f32,
     pub mass: f32,
     pub size: Vec2,
@@ -29,7 +29,7 @@ impl Projectile {
         self.health <= 0.
     }
 
-    pub fn owner(&self) -> Option<PlayerToken> {
+    pub fn owner(&self) -> Option<PlayerId> {
         Some(self.owner)
     }
     pub fn apply_damage(&mut self, damage: f32, _position: Vec2) -> Vec<(Material, f32)> {
@@ -65,7 +65,7 @@ impl ProjectileType {
         velocity: Vec2,
         rotation: f32,
         time: f32,
-        owner: PlayerToken,
+        owner: PlayerId,
     ) -> Projectile {
         let (health, mass, scale, lifetime, destructive_power) = match &self {
             ProjectileType::Bullet => (50., 0.3, vec2(0.5, 0.2), 5., 2.),

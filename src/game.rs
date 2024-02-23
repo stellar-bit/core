@@ -12,7 +12,7 @@ use crate::prelude::*;
 pub use asteroid::Asteroid;
 pub use game_object::*;
 pub use material::Material;
-pub use player::{Player, PlayerToken};
+pub use player::{Player, PlayerId};
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
 pub use spacecraft::Spacecraft;
@@ -66,7 +66,7 @@ pub enum GameEvent {
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Game {
     pub sync: GameSync,
-    pub players: HashMap<PlayerToken, Player>, // public keys as public keys
+    pub players: HashMap<PlayerId, Player>, // public keys as public keys
     #[serde(skip)]
     pub cmds_history: Vec<ExecutedGameCmd>,
     pub game_objects: HashMap<GameObjectId, GameObject>,
@@ -637,10 +637,10 @@ pub enum GameCmd {
     BuildSpacecraft(GameObjectId, SpacecraftStructure, usize),
     ExecuteComponentCmd(GameObjectId, ComponentId, ComponentCmd),
     DeploySpacecraft(GameObjectId, usize),
-    AddPlayer(PlayerToken),
-    SpawnStarBase(PlayerToken, Vec2, Vec2),
+    AddPlayer(PlayerId),
+    SpawnStarBase(PlayerId, Vec2, Vec2),
     AddLogMessage(String),
-    GiveMaterials(PlayerToken, BTreeMap<Material, f32>),
+    GiveMaterials(PlayerId, BTreeMap<Material, f32>),
 }
 
 pub fn run_game(game: Arc<RwLock<Game>>, tick_rate: u32) {
@@ -660,7 +660,7 @@ pub fn run_game(game: Arc<RwLock<Game>>, tick_rate: u32) {
 pub enum User {
     Server,
     Spectator,
-    Player(PlayerToken),
+    Player(PlayerId),
 }
 
 #[derive(Debug)]
