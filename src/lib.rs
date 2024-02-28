@@ -183,6 +183,13 @@ impl Interval {
             interval,
         }
     }
+    /// Creates a new interval with already elapsed first duration
+    pub fn new_elapsed(interval: time::Duration) -> Self {
+        Self {
+            last: prelude::now() - interval,
+            interval,
+        }
+    }
     pub fn check(&mut self) -> bool {
         let now = prelude::now();
         if now - self.last > self.interval {
