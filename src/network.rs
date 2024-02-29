@@ -18,7 +18,7 @@ pub enum ServerResponse {
 // #[serde(tag = "type", content = "content")]
 pub enum ClientRequest {
     ExecuteGameCmds(Vec<GameCmd>), // "{\"ExecGameCmds\":[{\"SpawnAsteroid\":[193.66406,126.02344]}, {\"ExecuteComponentCmd\":[0, 10, 2, {"SetActive": true}}]
-    Join(PlayerId, Option<AccessToken>),
+    Join(PlayerId, AccessToken),
     FullGameSync,
     GameCmdsSync,
     SyncClock,
