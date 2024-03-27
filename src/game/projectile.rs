@@ -55,7 +55,6 @@ impl Projectile {
 pub enum ProjectileType {
     Bullet,
     Missile,
-    Laser,
 }
 
 impl ProjectileType {
@@ -68,9 +67,8 @@ impl ProjectileType {
         owner: PlayerId,
     ) -> Projectile {
         let (health, mass, scale, lifetime, destructive_power) = match &self {
-            ProjectileType::Bullet => (50., 0.3, vec2(0.5, 0.2), 5., 2.),
+            ProjectileType::Bullet => (50., 0.3, vec2(0.2, 0.2), 5., 1.),
             ProjectileType::Missile => (500., 1., vec2(0.3, 0.3), 20., 3.),
-            ProjectileType::Laser => (80., 0.1, vec2(0.5, 0.1), 3., 1.),
         };
 
         let bounds = vec![

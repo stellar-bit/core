@@ -152,7 +152,7 @@ pub enum ComponentType {
     Central,
     SteelBlock,
     RaptorEngine,
-    LaserWeapon,
+    KineticWeapon,
     MissileLauncher,
 }
 
@@ -177,12 +177,12 @@ impl ComponentType {
                 0.01,
                 vec2(-0.8, 0.),
             )),
-            ComponentType::LaserWeapon => Component::Weapon(Weapon::new(
+            ComponentType::KineticWeapon => Component::Weapon(Weapon::new(
                 body,
                 10.,
                 health,
                 5.,
-                ProjectileType::Laser,
+                ProjectileType::Bullet,
                 100.,
                 vec2(0.48, 0.),
                 PI,
@@ -204,7 +204,7 @@ impl ComponentType {
             ComponentType::Central => 2000.,
             ComponentType::SteelBlock => 1000.,
             ComponentType::RaptorEngine => 1500.,
-            ComponentType::LaserWeapon => 500.,
+            ComponentType::KineticWeapon => 500.,
             ComponentType::MissileLauncher => 1000.,
         }
     }
@@ -213,7 +213,7 @@ impl ComponentType {
             ComponentType::Central => uvec2(1, 1),
             ComponentType::SteelBlock => uvec2(1, 1),
             ComponentType::RaptorEngine => uvec2(2, 1),
-            ComponentType::LaserWeapon => uvec2(1, 1),
+            ComponentType::KineticWeapon => uvec2(1, 1),
             ComponentType::MissileLauncher => uvec2(2, 1),
         }
     }
@@ -222,7 +222,7 @@ impl ComponentType {
             ComponentType::Central => 0.,
             ComponentType::SteelBlock => 1.,
             ComponentType::RaptorEngine => 2.,
-            ComponentType::LaserWeapon => 2.,
+            ComponentType::KineticWeapon => 2.,
             ComponentType::MissileLauncher => 3.,
         }
     }
@@ -231,7 +231,7 @@ impl ComponentType {
             ComponentType::Central => None,
             ComponentType::SteelBlock => None,
             ComponentType::RaptorEngine => None,
-            ComponentType::LaserWeapon => Some(TopComponentProperties {
+            ComponentType::KineticWeapon => Some(TopComponentProperties {
                 occupies: vec![ivec2(0, 0)],
             }),
             ComponentType::MissileLauncher => Some(TopComponentProperties {
@@ -255,7 +255,7 @@ impl ComponentType {
                 (Material::Nickel, 10.),
                 (Material::Copper, 5.),
             ],
-            ComponentType::LaserWeapon => vec![
+            ComponentType::KineticWeapon => vec![
                 (Material::Silicates, 5.),
                 (Material::Iron, 5.),
                 (Material::Carbon, 2.),
