@@ -61,7 +61,7 @@ pub struct ExecutedGameCmd {
 pub enum GameEvent {
     ProjectileLaunched(Projectile),
     SpacecraftDeployed(Spacecraft),
-    GameObjectDestroyed(GameObject, GameObject),
+    GameObjectDestroyed(GameObject, GameObject), // destroyed, destroyer
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
