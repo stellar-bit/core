@@ -191,7 +191,7 @@ impl Game {
                     pos,
                     vel,
                     self.time_elapsed,
-                    self.rng.gen::<f32>().sqrt() * 20. + 2.,
+                    self.rng.gen::<f32>().sqrt() * 50. + 2.,
                     self.rng.gen(),
                 );
                 self.game_objects
