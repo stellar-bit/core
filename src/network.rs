@@ -12,6 +12,9 @@ pub enum ServerResponse {
     Success,
     Error,
     SyncClock(time::Duration),
+    WrongAuthToken,
+    NotAuthorized,
+    ServerFull
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -29,6 +32,4 @@ pub enum NetworkError {
     IncorrectDataFormat,
     WebsocketTrouble,
     NoMsgReceived,
-    WrongAuthToken,
-    NotAuthorized,
 }
