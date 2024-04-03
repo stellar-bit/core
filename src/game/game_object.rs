@@ -88,7 +88,7 @@ impl GameObject {
     pub fn destructive_power(&self) -> f32 {
         match self {
             GameObject::Projectile(projectile) => projectile.destructive_power(),
-            _ => 1.,
+            _ => 0.001,
         }
     }
     pub fn apply_damage(&mut self, damage: f32, position: Vec2) -> Vec<(Material, f32)> {
