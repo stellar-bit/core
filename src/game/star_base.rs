@@ -48,12 +48,12 @@ impl StarBase {
         Self {
             body,
             owner,
-            health: 100000.,
+            health: 10000.,
             hangars: vec![Hangar::new(), Hangar::new()],
         }
     }
     pub fn mass(&self) -> f32 {
-        1000.
+        10000.
     }
     pub fn can_build_spacecraft(
         &self,
