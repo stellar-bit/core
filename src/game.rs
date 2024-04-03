@@ -281,6 +281,14 @@ impl Game {
 
                 self.players.insert(player_id, Player::new());
             }
+            GameCmd::RemovePlayer(player_id) => {
+                if user != User::Server {
+                    return Err(GameCmdExecutionError::NotAuthorized);
+                }
+
+                let _ = self.game_objects.extract_if(|_, go| if let Some(id) = go.owner() { id == player_id} else { false });
+                self.players.remove(&player_id);
+            }
         }
         Ok(())
     }
@@ -639,6 +647,7 @@ pub enum GameCmd {
     ExecuteComponentCmd(GameObjectId, ComponentId, ComponentCmd),
     DeploySpacecraft(GameObjectId, usize),
     AddPlayer(PlayerId),
+    RemovePlayer(PlayerId),
     SpawnStarBase(PlayerId, Vec2, Vec2),
     AddLogMessage(String),
     GiveMaterials(PlayerId, BTreeMap<Material, f32>),
