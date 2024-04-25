@@ -174,7 +174,7 @@ impl ComponentType {
                 health,
                 800.,
                 500000.,
-                0.01,
+                0.001,
                 vec2(-0.8, 0.),
             )),
             ComponentType::KineticWeapon => Component::Weapon(Weapon::new(
