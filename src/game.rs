@@ -286,7 +286,10 @@ impl Game {
                     return Err(GameCmdExecutionError::NotAuthorized);
                 }
 
-                let _ = self.game_objects.extract_if(|_, go| if let Some(id) = go.owner() { id == player_id} else { false });
+                let goe  = self.game_objects.extract_if(|_, go| if let Some(id) = go.owner() { id == player_id} else { false });
+                for go in goe {
+                    println!("{:?}", go);
+                }
                 self.players.remove(&player_id);
             }
         }
