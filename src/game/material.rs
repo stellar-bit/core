@@ -25,11 +25,11 @@ impl Material {
     }
     pub fn health_per_area(&self) -> f32 {
         match self {
-            Material::Iron => 8.,
-            Material::Nickel => 7.5,
-            Material::Silicates => 4.,
-            Material::Copper => 8.,
-            Material::Carbon => 7.,
+            Material::Iron => 2.,
+            Material::Nickel => 2.,
+            Material::Silicates => 1.5,
+            Material::Copper => 2.,
+            Material::Carbon => 2.,
         }
     }
 }
