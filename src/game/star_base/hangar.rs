@@ -28,7 +28,7 @@ impl std::fmt::Display for Hangar {
 impl Hangar {
     pub fn new() -> Self {
         Self {
-            build_speed: 5.,
+            build_speed: 1.,
             progress: 0.,
             deploy: false,
             building_queue: VecDeque::new(),
