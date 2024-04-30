@@ -48,7 +48,7 @@ impl StarBase {
         Self {
             body,
             owner,
-            health: 2000.,
+            health: 1000.,
             hangars: vec![Hangar::new(), Hangar::new()],
         }
     }
