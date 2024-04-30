@@ -248,24 +248,26 @@ impl ComponentType {
     }
     pub fn materials(&self) -> Vec<(Material, f32)> {
         match self {
-            ComponentType::Central => vec![(Material::Nickel, 15.), (Material::Iron, 10.)],
-            ComponentType::SteelBlock => vec![(Material::Iron, 20.)],
+            ComponentType::Central => vec![(Material::Nickel, 15.), (Material::Iron, 3.), (Material::Silicates, 10.)],
+            ComponentType::SteelBlock => vec![(Material::Iron, 5.), (Material::Nickel, 5.), (Material::Copper, 2.)],
             ComponentType::RaptorEngine => vec![
                 (Material::Iron, 10.),
-                (Material::Nickel, 10.),
-                (Material::Copper, 5.),
+                (Material::Nickel, 30.),
+                (Material::Copper, 20.),
+                (Material::Silicates, 10.)
             ],
             ComponentType::KineticWeapon => vec![
                 (Material::Silicates, 5.),
                 (Material::Iron, 5.),
+                (Material::Copper, 7.),
                 (Material::Carbon, 2.),
             ],
             ComponentType::MissileLauncher => vec![
-                (Material::Iron, 10.),
-                (Material::Silicates, 10.),
+                (Material::Iron, 5.),
+                (Material::Silicates, 5.),
                 (Material::Nickel, 5.),
                 (Material::Copper, 3.),
-                (Material::Carbon, 2.),
+                (Material::Carbon, 4.),
             ],
         }
     }
