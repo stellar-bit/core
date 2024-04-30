@@ -78,7 +78,6 @@ pub struct Game {
     pub time_elapsed: f32,
     pub log: Vec<String>,
     rng: ChaChaRng,
-    version: String
 }
 
 impl Game {
@@ -92,7 +91,6 @@ impl Game {
             time_elapsed: 0.,
             rng: ChaChaRng::from_entropy(),
             log: vec![],
-            version: VERSION.into()
         }
     }
 
