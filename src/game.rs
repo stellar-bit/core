@@ -31,11 +31,12 @@ pub use spacecraft_structure::{ComponentPlaceholder, SpacecraftStructure};
 
 use self::collision_detection::{check_sharp_collision, CollisionInfo};
 
+pub const VERSION: &'static str = "0.0-release";
+
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct GameSync {
     pub last_update: Duration,
     pub frame: usize,
-    pub version: String
 }
 
 impl GameSync {
@@ -43,7 +44,6 @@ impl GameSync {
         Self {
             last_update: now(),
             frame: 0,
-            version: "0.0-release".into()
         }
     }
     pub fn update(&mut self) {
@@ -78,6 +78,7 @@ pub struct Game {
     pub time_elapsed: f32,
     pub log: Vec<String>,
     rng: ChaChaRng,
+    version: String
 }
 
 impl Game {
@@ -91,6 +92,7 @@ impl Game {
             time_elapsed: 0.,
             rng: ChaChaRng::from_entropy(),
             log: vec![],
+            version: VERSION.into()
         }
     }
 
