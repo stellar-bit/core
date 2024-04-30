@@ -35,6 +35,7 @@ use self::collision_detection::{check_sharp_collision, CollisionInfo};
 pub struct GameSync {
     pub last_update: Duration,
     pub frame: usize,
+    pub version: String
 }
 
 impl GameSync {
@@ -42,6 +43,7 @@ impl GameSync {
         Self {
             last_update: now(),
             frame: 0,
+            version: "0.0-release".into()
         }
     }
     pub fn update(&mut self) {
