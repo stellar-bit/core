@@ -34,7 +34,7 @@ impl Projectile {
     }
     pub fn apply_damage(&mut self, damage: f32, _position: Vec2) -> Vec<(Material, f32)> {
         self.health -= damage;
-        vec![(Material::Iron, damage / 10.)]
+        vec![(Material::Iron, damage / 10_000.)]
     }
     pub fn health(&self) -> f32 {
         if self.lifetime < 0. {
