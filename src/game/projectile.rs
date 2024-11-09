@@ -67,7 +67,7 @@ impl ProjectileType {
         owner: PlayerId,
     ) -> Projectile {
         let (health, mass, scale, lifetime, destructive_power) = match &self {
-            ProjectileType::Bullet => (50., 10., vec2(0.2, 0.2), 5., 0.03),
+            ProjectileType::Bullet => (50., 10., vec2(0.2, 0.2), 10., 0.03),
             ProjectileType::Missile => (500., 30., vec2(0.3, 0.3), 20., 0.1),
         };
 
